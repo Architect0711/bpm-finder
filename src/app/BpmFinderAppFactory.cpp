@@ -4,13 +4,15 @@
 
 #include "BpmFinderAppFactory.h"
 
-namespace bpmfinder::app {
-
-    std::unique_ptr<BpmFinderApp> BpmFinderAppFactory::CreateProductionApp() {
+namespace bpmfinder::app
+{
+    std::unique_ptr<BpmFinderApp> BpmFinderAppFactory::CreateProductionApp()
+    {
         return std::make_unique<BpmFinderApp>();
     }
 
-    std::unique_ptr<BpmFinderApp> BpmFinderAppFactory::CreateTestApp() {
+    std::unique_ptr<BpmFinderApp> BpmFinderAppFactory::CreateTestApp()
+    {
         return std::make_unique<BpmFinderApp>();
     }
 }

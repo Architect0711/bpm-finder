@@ -6,8 +6,10 @@
 #include <memory>
 #include "BpmFinderApp.h"
 
-namespace bpmfinder::app {
-    class BpmFinderAppFactory {
+namespace bpmfinder::app
+{
+    class BpmFinderAppFactory
+    {
     public:
         static std::unique_ptr<BpmFinderApp> CreateProductionApp();
 

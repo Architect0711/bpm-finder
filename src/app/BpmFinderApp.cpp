@@ -9,20 +9,25 @@
 
 namespace bpmfinder::app
 {
-    BpmFinderApp::BpmFinderApp() : running_(false) {}
+    BpmFinderApp::BpmFinderApp() : running_(false)
+    {
+    }
 
     BpmFinderApp::~BpmFinderApp() { Stop(); }
 
-    void BpmFinderApp::Run() {
+    void BpmFinderApp::Run()
+    {
         running_ = true;
 
-        while (running_) {
+        while (running_)
+        {
             std::cout << "Hello, CLion!" << std::endl;
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
         }
     }
 
-    void BpmFinderApp::Stop() {
+    void BpmFinderApp::Stop()
+    {
         running_ = false;
     }
 }

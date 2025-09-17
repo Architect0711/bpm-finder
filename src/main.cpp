@@ -9,7 +9,8 @@
 
 using namespace bpmfinder::app;
 
-int main() {
+int main()
+{
     const auto app = BpmFinderAppFactory::CreateProductionApp();
     app->Run(); // blocks until stopped
     return 0;
