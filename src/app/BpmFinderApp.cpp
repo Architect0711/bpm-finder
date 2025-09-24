@@ -7,6 +7,8 @@
 #include <iostream>
 #include <thread>
 
+#include "audio/WasapiAudioSource.h"
+
 namespace bpmfinder::app
 {
     BpmFinderApp::BpmFinderApp() : running_(false)
@@ -17,13 +19,22 @@ namespace bpmfinder::app
 
     void BpmFinderApp::Run()
     {
-        running_ = true;
+        audio::WasapiAudioSource source;
+        if (!source.Initialize())
+        {
+            std::cerr << "Failed to init WASAPI source" << std::endl;
+            return;
+        }
 
+        source.Start();
+
+        running_ = true;
         while (running_)
         {
-            std::cout << "Hello, CLion!" << std::endl;
-            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            std::this_thread::sleep_for(std::chrono::seconds(1));
         }
+
+        source.Stop();
     }
 
     void BpmFinderApp::Stop()
