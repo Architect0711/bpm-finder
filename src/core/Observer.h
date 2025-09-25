@@ -19,6 +19,13 @@ namespace bpmfinder::core
         std::queue<DataType> queue_;
 
     public:
-        void PushData(const DataType& data);
+        void PushData(const DataType& data)
+        {
+            {
+                std::unique_lock lock(mtx_);
+                queue_.push(data);
+            }
+            cv_.notify_one();
+        }
     };
 }

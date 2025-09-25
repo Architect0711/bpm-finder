@@ -7,6 +7,7 @@
 #include <iostream>
 #include <thread>
 
+#include "audio/AudioCsvFileSink.h"
 #include "audio/WasapiAudioSource.h"
 
 namespace bpmfinder::app
@@ -25,6 +26,10 @@ namespace bpmfinder::app
             std::cerr << "Failed to init WASAPI source" << std::endl;
             return;
         }
+
+        audio::AudioCsvFileSink sink("waveform.csv");
+
+        source.Subscribe(&sink);
 
         source.Start();
 

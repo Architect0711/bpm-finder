@@ -10,10 +10,11 @@
 
 using namespace bpmfinder::audio;
 
-WasapiAudioSource::WasapiAudioSource()
-    : waveFormat_(nullptr), eventHandle_(nullptr), capturing_(false)
+WasapiAudioSource::WasapiAudioSource(size_t chunkSize)
+    : waveFormat_(nullptr), eventHandle_(nullptr), capturing_(false), chunkSize_(chunkSize)
 {
     CoInitializeEx(nullptr, COINIT_MULTITHREADED);
+    audioBuffer_.reserve(chunkSize_);
 }
 
 WasapiAudioSource::~WasapiAudioSource()
@@ -54,7 +55,6 @@ bool WasapiAudioSource::Initialize()
 void WasapiAudioSource::Start()
 {
     capturing_ = true;
-    csvFile_.open("waveform.csv", std::ios::out); // overwrite each run
     audioClient_->Start();
     std::thread(&WasapiAudioSource::CaptureLoop, this).detach();
 }
@@ -66,11 +66,6 @@ void WasapiAudioSource::Stop()
     if (audioClient_)
     {
         audioClient_->Stop();
-    }
-
-    if (csvFile_.is_open())
-    {
-        csvFile_.close();
     }
 }
 
@@ -84,42 +79,60 @@ void WasapiAudioSource::CaptureLoop()
         while (packetLength != 0)
         {
             BYTE* data;
-            UINT32 numFrames;
+            UINT32 numFrames; // Number of frames received in the current packet
             DWORD flags;
 
             hr = captureClient_->GetBuffer(&data, &numFrames, &flags, nullptr, nullptr);
             if (SUCCEEDED(hr))
             {
+                // Calculate the number of actual float samples (frames * channels)
+                // Assuming mono (1 channel) for simplicity; adjust if stereo.
+                size_t numSamples = numFrames; // Assuming mono (1 float per frame)
                 float* samples = reinterpret_cast<float*>(data);
 
-                PrintWaveformASCII(samples, numFrames);
-                for (UINT32 i = 0; i < numFrames; i++)
+                size_t samplesRemaining = numSamples;
+                size_t offset = 0;
+
+                while (samplesRemaining > 0)
                 {
-                    csvFile_ << samples[i] << "\n";
+                    // Calculate how many samples we need to reach the full chunk size
+                    size_t needed = chunkSize_ - audioBuffer_.size();
+
+                    // Determine how many samples to copy in this step
+                    size_t copyCount = std::min(samplesRemaining, needed);
+
+                    // Append the samples to the buffer
+                    audioBuffer_.insert(audioBuffer_.end(), samples + offset, samples + offset + copyCount);
+
+                    // Update counters
+                    samplesRemaining -= copyCount;
+                    offset += copyCount;
+
+                    // Check if a full chunk is ready
+                    if (audioBuffer_.size() == chunkSize_)
+                    {
+                        // 1. Efficiently move data from the instance buffer to a local, temporary buffer.
+                        // This makes 'audioBuffer_' ready for immediate reuse (O(1) move).
+                        AudioChunk completeChunk = std::move(audioBuffer_);
+
+                        // 2. Notify ALL observers using the local buffer.
+                        // The Notify method will now call PushData(const AudioChunk&),
+                        // which forces a COPY into *each* observer's queue.
+                        this->Notify(completeChunk);
+
+                        // 3. Reset the instance buffer (already done by std::move and clear)
+                        audioBuffer_.clear();
+                        audioBuffer_.reserve(chunkSize_);
+                    }
                 }
+
                 captureClient_->ReleaseBuffer(numFrames);
             }
 
+            // Check for the next packet size
             captureClient_->GetNextPacketSize(&packetLength);
         }
 
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
-    }
-}
-
-void WasapiAudioSource::PrintWaveformASCII(const float* samples, size_t numSamples)
-{
-    const int width = 50; // width of the graph
-    for (size_t i = 0; i < numSamples; i++)
-    {
-        int pos = static_cast<int>((samples[i] + 1.0f) * 0.5f * width);
-        for (int j = 0; j < width; j++)
-        {
-            if (j == pos)
-                std::cout << "*"; // waveform point
-            else
-                std::cout << " ";
-        }
-        std::cout << std::endl;
     }
 }

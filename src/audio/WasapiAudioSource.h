@@ -8,17 +8,19 @@
 #include <wrl/client.h> // Microsoft::WRL::ComPtr smart pointers
 #include <fstream>
 
+#include "IAudioSource.h"
+
 namespace bpmfinder::audio
 {
-    class WasapiAudioSource
+    class WasapiAudioSource final : public IAudioSource
     {
     public:
-        WasapiAudioSource();
-        ~WasapiAudioSource();
+        explicit WasapiAudioSource(size_t chunkSize = 512);
+        ~WasapiAudioSource() override;
 
-        bool Initialize();
-        void Start();
-        void Stop();
+        bool Initialize() override;
+        void Start() override;
+        void Stop() override;
 
         void CaptureLoop();
 
@@ -27,9 +29,9 @@ namespace bpmfinder::audio
         Microsoft::WRL::ComPtr<IMMDevice> device_;
         Microsoft::WRL::ComPtr<IAudioClient> audioClient_;
         Microsoft::WRL::ComPtr<IAudioCaptureClient> captureClient_;
-        static void PrintWaveformASCII(const float* samples, size_t numSamples);
 
-        std::ofstream csvFile_;
+        AudioChunk audioBuffer_;
+        size_t chunkSize_;
         WAVEFORMATEX* waveFormat_;
         HANDLE eventHandle_;
         bool capturing_;
