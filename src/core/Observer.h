@@ -13,7 +13,7 @@ namespace bpmfinder::core
     template <typename DataType>
     class Observer
     {
-    private:
+    protected:
         std::mutex mtx_;
         std::condition_variable cv_;
         std::queue<DataType> queue_;
@@ -24,7 +24,7 @@ namespace bpmfinder::core
             {
                 std::unique_lock lock(mtx_);
                 queue_.push(data);
-            }
+            } // Release lock before notifying
             cv_.notify_one();
         }
     };

@@ -18,9 +18,20 @@ namespace bpmfinder::core
         std::mutex mtx_;
 
     public:
-        void Subscribe(Observer<DataType>* obs);
+        void Subscribe(Observer<DataType>* obs)
+        {
+            std::lock_guard lock(mtx_);
+            observers_.push_back(obs);
+        }
 
     protected:
-        void Notify(const DataType& data);
+        void Notify(const DataType& data)
+        {
+            std::lock_guard lock(mtx_);
+            for (auto* obs : observers_)
+            {
+                obs->PushData(data); // observer handles thread safety
+            }
+        }
     };
 }

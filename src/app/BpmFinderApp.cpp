@@ -20,7 +20,7 @@ namespace bpmfinder::app
 
     void BpmFinderApp::Run()
     {
-        audio::WasapiAudioSource source;
+        audio::WasapiAudioSource source(32);
         if (!source.Initialize())
         {
             std::cerr << "Failed to init WASAPI source" << std::endl;
