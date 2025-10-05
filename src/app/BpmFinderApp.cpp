@@ -7,7 +7,7 @@
 #include <iostream>
 #include <thread>
 
-#include "audio/AudioCsvFileSink.h"
+#include "audio/AudioBinFileSink.h"
 #include "audio/WasapiAudioSource.h"
 
 namespace bpmfinder::app
@@ -27,7 +27,7 @@ namespace bpmfinder::app
             return;
         }
 
-        audio::AudioCsvFileSink sink("waveform.csv");
+        audio::AudioBinFileSink sink("waveform.bin");
 
         source.Subscribe(&sink);
 

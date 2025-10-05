@@ -23,25 +23,29 @@ FileAudioSource::~FileAudioSource()
 bool FileAudioSource::Initialize()
 {
     // A second call to Initialize should just rewind to the start of the file, no need to read in the whole file again
-    if (samples_.size() > 0)
+    if (!samples_.empty())
     {
         cursor_ = 0;
         return true;
     }
 
-    // For now just read raw floats from a simple text file
-    std::ifstream file(filename_);
+    // Read raw floats from binary file
+    std::ifstream file(filename_, std::ios::binary);
     if (!file.is_open())
     {
         std::cerr << "Failed to open file: " << filename_ << std::endl;
         return false;
     }
 
-    float value;
-    while (file >> value)
-    {
-        samples_.push_back(value);
-    }
+    // Get file size
+    file.seekg(0, std::ios::end);
+    size_t fileSize = file.tellg();
+    file.seekg(0, std::ios::beg);
+
+    // Read all floats at once
+    size_t numSamples = fileSize / sizeof(float);
+    samples_.resize(numSamples);
+    file.read(reinterpret_cast<char*>(samples_.data()), fileSize);
 
     return !samples_.empty();
 }

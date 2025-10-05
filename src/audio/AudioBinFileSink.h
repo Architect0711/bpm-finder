@@ -9,14 +9,14 @@
 
 namespace bpmfinder::audio
 {
-    class AudioCsvFileSink : public core::Sink<AudioChunk>
+    class AudioBinFileSink : public core::Sink<AudioChunk>
     {
     private:
         std::ofstream file_; // RAII: The file handle is managed here!
 
     public:
         // 1. Constructor: Acquire Resource (Open File)
-        explicit AudioCsvFileSink(const std::string& filename)
+        explicit AudioBinFileSink(const std::string& filename)
         {
             // Opening the file here is the "Initialization"
             file_.open(filename, std::ios::binary | std::ios::trunc);
