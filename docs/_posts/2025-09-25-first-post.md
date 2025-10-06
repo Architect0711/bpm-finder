@@ -1,3 +1,9 @@
+---
+layout: post
+title: "Hello World"
+date: 2025-09-25
+---
+
 # 2025-09-25 - Hello World
 
 Setting up my first C++ application from scratch and getting back into coding after a few months of conceptual work only

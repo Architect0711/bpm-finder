@@ -1,1 +1,6 @@
 theme: jekyll-theme-midnight
+title: bpm-finder
+description: Find the bpm in any audio playing on your pc
+
+# Enable posts
+permalink: /:year/:month/:day/:title/
