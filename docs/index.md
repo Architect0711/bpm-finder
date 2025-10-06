@@ -15,7 +15,9 @@ A C++ application for BPM detection.
 
 ### Core
 
-- [Copy Observer Pattern]
+- [Copy Observer Pattern](core/copy-observer-pattern.md) - A simple CRTP based observer pattern for copying data from
+  one
+  class to another
 - [Copy Sink](core/copy-sink.md) - Base class for data sinks that copy data from the dsp chain and then process it
   further
 
