@@ -3,7 +3,7 @@
 //
 
 #pragma once
-#include "Observer.h"
+#include "CopyObserver.h"
 #include <thread>
 #include <atomic>
 #include <future>
@@ -12,12 +12,12 @@
 namespace bpmfinder::core
 {
     template <typename DataType>
-    class Sink : public Observer<DataType>
+    class CopySink : public CopyObserver<DataType>
     {
     public:
-        Sink() = default;
+        CopySink() = default;
 
-        virtual ~Sink()
+        virtual ~CopySink()
         {
             Stop();
         }

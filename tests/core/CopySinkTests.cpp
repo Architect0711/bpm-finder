@@ -3,8 +3,8 @@
 //
 
 #include <gtest/gtest.h>
-#include "../../src/core/Sink.h"
-#include "../../src/core/Observable.h"
+#include "../../src/core/CopySink.h"
+#include "../../src/core/CopyObservable.h"
 #include <string>
 #include <vector>
 #include <thread>
@@ -16,11 +16,11 @@ using namespace bpmfinder::core;
  * @class TestSink
  * @brief A test implementation of Sink that collects processed data in a vector.
  *
- * TestSink provides a concrete implementation of the abstract Sink class for testing purposes.
+ * TestSink provides a concrete implementation of the abstract CopySink class for testing purposes.
  * It stores all processed data items in a thread-safe vector, allowing external verification
  * of the sink's behavior.
  */
-class TestSink : public Sink<std::string>
+class TestSink : public CopySink<std::string>
 {
 private:
     std::vector<std::string> processed_data_;
@@ -67,10 +67,10 @@ protected:
 };
 
 /**
- * @class TestObservable
+ * @class TestCopyObservable
  * @brief A specialized observable class for testing sink interactions.
  */
-class TestObservable : public Observable<std::string>
+class TestCopyObservable : public CopyObservable<std::string>
 {
 public:
     void EmitData(const std::string& data)
@@ -83,7 +83,7 @@ public:
 // Test Fixture
 // ============================================================================
 
-class SinkTests : public ::testing::Test
+class CopySinkTests : public ::testing::Test
 {
 protected:
     void SetUp() override
@@ -129,18 +129,18 @@ protected:
 // Basic Functionality Tests
 // ============================================================================
 
-TEST_F(SinkTests, WhenSinkCreated_ThenNotRunning)
+TEST_F(CopySinkTests, WhenSinkCreated_ThenNotRunning)
 {
     EXPECT_FALSE(sink_->IsRunning());
 }
 
-TEST_F(SinkTests, WhenSinkStarted_ThenIsRunning)
+TEST_F(CopySinkTests, WhenSinkStarted_ThenIsRunning)
 {
     sink_->Start();
     EXPECT_TRUE(sink_->IsRunning());
 }
 
-TEST_F(SinkTests, WhenSinkStopped_ThenNotRunning)
+TEST_F(CopySinkTests, WhenSinkStopped_ThenNotRunning)
 {
     sink_->Start();
     ASSERT_TRUE(sink_->IsRunning());
@@ -149,7 +149,7 @@ TEST_F(SinkTests, WhenSinkStopped_ThenNotRunning)
     EXPECT_FALSE(sink_->IsRunning());
 }
 
-TEST_F(SinkTests, WhenStartCalledTwice_ThenNoError)
+TEST_F(CopySinkTests, WhenStartCalledTwice_ThenNoError)
 {
     sink_->Start();
     ASSERT_TRUE(sink_->IsRunning());
@@ -159,7 +159,7 @@ TEST_F(SinkTests, WhenStartCalledTwice_ThenNoError)
     EXPECT_TRUE(sink_->IsRunning());
 }
 
-TEST_F(SinkTests, WhenStopCalledTwice_ThenNoError)
+TEST_F(CopySinkTests, WhenStopCalledTwice_ThenNoError)
 {
     sink_->Start();
     sink_->Stop();
@@ -174,7 +174,7 @@ TEST_F(SinkTests, WhenStopCalledTwice_ThenNoError)
 // Data Processing Tests
 // ============================================================================
 
-TEST_F(SinkTests, WhenDataPushed_ThenDataProcessed)
+TEST_F(CopySinkTests, WhenDataPushed_ThenDataProcessed)
 {
     // -------------------- Arrange --------------------
     sink_->Start();
@@ -196,7 +196,7 @@ TEST_F(SinkTests, WhenDataPushed_ThenDataProcessed)
     EXPECT_EQ(processed[0], "test_data");
 }
 
-TEST_F(SinkTests, WhenMultipleDataPushed_ThenAllDataProcessedInOrder)
+TEST_F(CopySinkTests, WhenMultipleDataPushed_ThenAllDataProcessedInOrder)
 {
     // -------------------- Arrange --------------------
     sink_->Start();
@@ -221,7 +221,7 @@ TEST_F(SinkTests, WhenMultipleDataPushed_ThenAllDataProcessedInOrder)
     EXPECT_EQ(processed[2], "data3");
 }
 
-TEST_F(SinkTests, WhenDataPushedBeforeStart_ThenDataProcessedAfterStart)
+TEST_F(CopySinkTests, WhenDataPushedBeforeStart_ThenDataProcessedAfterStart)
 {
     // -------------------- Arrange --------------------
     sink_->PushData("early_data");
@@ -242,7 +242,7 @@ TEST_F(SinkTests, WhenDataPushedBeforeStart_ThenDataProcessedAfterStart)
     EXPECT_EQ(processed[0], "early_data");
 }
 
-TEST_F(SinkTests, WhenSinkStopped_ThenPendingDataStillProcessed)
+TEST_F(CopySinkTests, WhenSinkStopped_ThenPendingDataStillProcessed)
 {
     // -------------------- Arrange --------------------
     sink_->Start();
@@ -272,13 +272,13 @@ TEST_F(SinkTests, WhenSinkStopped_ThenPendingDataStillProcessed)
 }
 
 // ============================================================================
-// Observable Integration Tests
+// CopyObservable Integration Tests
 // ============================================================================
 
-TEST_F(SinkTests, WhenConnectedToObservable_ThenDataFromObservableIsProcessed)
+TEST_F(CopySinkTests, WhenConnectedToObservable_ThenDataFromObservableIsProcessed)
 {
     // -------------------- Arrange --------------------
-    TestObservable observable;
+    TestCopyObservable observable;
     observable.Subscribe(sink_.get());
     sink_->Start();
 
@@ -298,10 +298,10 @@ TEST_F(SinkTests, WhenConnectedToObservable_ThenDataFromObservableIsProcessed)
     EXPECT_EQ(processed[0], "observable_data");
 }
 
-TEST_F(SinkTests, WhenMultipleDataFromObservable_ThenAllProcessedInOrder)
+TEST_F(CopySinkTests, WhenMultipleDataFromObservable_ThenAllProcessedInOrder)
 {
     // -------------------- Arrange --------------------
-    TestObservable observable;
+    TestCopyObservable observable;
     observable.Subscribe(sink_.get());
     sink_->Start();
 
@@ -331,7 +331,7 @@ TEST_F(SinkTests, WhenMultipleDataFromObservable_ThenAllProcessedInOrder)
 // Stress Tests
 // ============================================================================
 
-TEST_F(SinkTests, WhenHighVolumeDataPushed_ThenAllDataProcessed)
+TEST_F(CopySinkTests, WhenHighVolumeDataPushed_ThenAllDataProcessed)
 {
     // -------------------- Arrange --------------------
     const size_t data_count = 1000;
@@ -357,7 +357,7 @@ TEST_F(SinkTests, WhenHighVolumeDataPushed_ThenAllDataProcessed)
     EXPECT_EQ(processed.size(), data_count);
 }
 
-TEST_F(SinkTests, WhenConcurrentDataPush_ThenAllDataProcessed)
+TEST_F(CopySinkTests, WhenConcurrentDataPush_ThenAllDataProcessed)
 {
     // -------------------- Arrange --------------------
     const size_t threads_count = 10;

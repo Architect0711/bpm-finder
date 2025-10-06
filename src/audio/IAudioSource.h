@@ -5,13 +5,13 @@
 #pragma once
 
 #include <vector>
-#include "core/Observable.h"
+#include "core/CopyObservable.h"
 
 namespace bpmfinder::audio
 {
     using AudioChunk = std::vector<float>;
 
-    class IAudioSource : public core::Observable<AudioChunk>
+    class IAudioSource : public core::CopyObservable<AudioChunk>
     {
     public:
         virtual ~IAudioSource() = default;

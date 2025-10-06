@@ -9,9 +9,9 @@
 
 namespace bpmfinder::core
 {
-    // CRTP Style Observer - Only pushes data to a queue, processing has to be done by other means, e.g. by implementing a WorkerThread
+    // CRTP Style CopyObserver - Only pushes data to a queue, processing has to be done by other means, e.g. by implementing a WorkerThread
     template <typename DataType>
-    class Observer
+    class CopyObserver
     {
     protected:
         std::mutex mtx_;

@@ -5,20 +5,20 @@
 #pragma once
 #include <vector>
 #include <mutex>
-#include "Observer.h"
+#include "CopyObserver.h"
 
 namespace bpmfinder::core
 {
-    // CRTP Style Observable - Emits objects of the templated data type
+    // CRTP Style CopyObservable - Emits objects of the templated data type
     template <typename DataType>
-    class Observable
+    class CopyObservable
     {
     private:
-        std::vector<class Observer<DataType>*> observers_;
+        std::vector<class CopyObserver<DataType>*> observers_;
         std::mutex mtx_;
 
     public:
-        void Subscribe(Observer<DataType>* obs)
+        void Subscribe(CopyObserver<DataType>* obs)
         {
             std::lock_guard lock(mtx_);
             observers_.push_back(obs);

@@ -4,12 +4,12 @@
 
 #pragma once
 #include "IAudioSource.h"
-#include "core/Sink.h"
+#include "core/CopySink.h"
 #include <fstream>
 
 namespace bpmfinder::audio
 {
-    class AudioBinFileSink : public core::Sink<AudioChunk>
+    class AudioBinFileSink : public core::CopySink<AudioChunk>
     {
     private:
         std::ofstream file_; // RAII: The file handle is managed here!

@@ -4,7 +4,7 @@
 
 #pragma once
 #include "IAudioSource.h"
-#include "core/Observable.h"
+#include "core/CopyObservable.h"
 #include <vector>
 #include <string>
 #include <fstream>
