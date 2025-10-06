@@ -35,7 +35,9 @@ namespace bpmfinder::audio
         void Process(AudioChunk data) override
         {
             // Since AudioChunk is std::vector<float>:
+            std::cout << "Writing " << data.size() << " samples to file..." << std::endl;
             file_.write(reinterpret_cast<const char*>(data.data()), data.size() * sizeof(float));
+            std::cout << "File size: " << file_.tellp() << std::endl;
         }
     };
 }

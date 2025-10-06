@@ -31,6 +31,9 @@ namespace bpmfinder::app
 
         source.Subscribe(&sink);
 
+        // Start the sink's worker thread BEFORE starting the audio source
+        sink.Start();
+
         source.Start();
 
         running_ = true;
