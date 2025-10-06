@@ -18,6 +18,17 @@ FetchContent_Declare(
 # Makes gtest targets (like GTest::gtest_main) available
 FetchContent_MakeAvailable(googletest)
 
+
+# ----- Add spdlog as a Dependency -----
+FetchContent_Declare(
+        spdlog
+        GIT_REPOSITORY https://github.com/gabime/spdlog.git
+        GIT_TAG v1.14.1  # Latest stable version
+        GIT_SHALLOW TRUE
+)
+
+FetchContent_MakeAvailable(spdlog)
+
 # Enable testing for CTest integration
 enable_testing()
 
@@ -29,4 +40,5 @@ target_link_libraries(bpm-finder
         uuid
         avrt
         oleaut32
+        spdlog::spdlog  # Add spdlog
 )
