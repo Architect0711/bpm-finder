@@ -11,6 +11,9 @@ will be to write data into a file or to send it to the gui for displaying.
 
 ## Lifecycle
 
+The sink is started and stopped by the main thread. The sink is not thread safe, so it is not possible to start it
+from multiple threads.
+
 ```mermaid
 sequenceDiagram
     participant Main as Main Thread
@@ -101,6 +104,9 @@ sequenceDiagram
 ```
 
 ### Worker Thread State Machine
+
+The processing loop of the sink is implemented in a separate thread. The state machine below shows the state transitions
+of the worker thread.
 
 ```mermaid
 stateDiagram-v2
