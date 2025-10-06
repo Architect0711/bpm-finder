@@ -15,7 +15,8 @@ A C++ application for BPM detection.
 
 ### Core
 
-- [Sink](core/sink.md) - Base class for DSP chain consumers
+- [CopySink](core/copy-sink.md) - Base class for data sinks that copy data from the dsp chain and then process it
+  further
 
 ## Recent Posts
 
