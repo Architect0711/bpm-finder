@@ -2,5 +2,8 @@ theme: jekyll-theme-midnight
 title: bpm-finder
 description: Find the bpm in any audio playing on your pc
 
+# Set baseurl to your repository name
+baseurl: /bpm-finder
+
 # Enable posts
 permalink: /:year/:month/:day/:title/

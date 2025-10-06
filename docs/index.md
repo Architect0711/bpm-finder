@@ -9,13 +9,13 @@ A C++ application for BPM detection.
 
 ## Documentation
 
-### Core
-
-- [Sink](core/sink.md) - Base class for DSP chain consumers
-
 ### App
 
 - [Overview](app/overview.md) - Application architecture and structure
+
+### Core
+
+- [Sink](core/sink.md) - Base class for DSP chain consumers
 
 ## Recent Posts
 
