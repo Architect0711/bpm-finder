@@ -1,3 +1,8 @@
+---
+layout: default
+title: Sink
+---
+
 # Sink
 
 The sink is a base class for a piece of the dsp chain that does not emit any values. It consumes values using the
