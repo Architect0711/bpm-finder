@@ -20,7 +20,12 @@ namespace bpmfinder::app
 
     void BpmFinderApp::Run()
     {
-        audio::WasapiAudioSource source(32);
+        auto chunkSize = 1024;
+        auto sampleRate = 48000;
+        auto bandPassLowCutoff = 100;
+        auto bandPassHighCutoff = 10000;
+
+        audio::WasapiAudioSource source(chunkSize);
         if (!source.Initialize())
         {
             std::cerr << "Failed to init WASAPI source" << std::endl;

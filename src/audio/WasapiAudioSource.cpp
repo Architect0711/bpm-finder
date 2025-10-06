@@ -40,6 +40,10 @@ bool WasapiAudioSource::Initialize()
     hr = audioClient_->GetMixFormat(&waveFormat_);
     if (FAILED(hr)) return false;
 
+    // Store format info for easy access
+    sampleRate_ = waveFormat_->nSamplesPerSec;
+    numChannels_ = waveFormat_->nChannels;
+
     // Initialize in shared mode
     hr = audioClient_->Initialize(AUDCLNT_SHAREMODE_SHARED,
                                   AUDCLNT_STREAMFLAGS_LOOPBACK,
