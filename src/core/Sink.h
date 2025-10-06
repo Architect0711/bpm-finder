@@ -6,6 +6,7 @@
 #include "Observer.h"
 #include <thread>
 #include <atomic>
+#include <future>
 #include <iostream>
 
 namespace bpmfinder::core
@@ -26,10 +27,16 @@ namespace bpmfinder::core
             if (running_) return; // Avoid starting twice
 
             running_ = true;
-            thread_ = std::thread([this]()
+            std::promise<void> thread_ready;
+            std::future<void> ready_future = thread_ready.get_future();
+
+            thread_ = std::thread([this, ready_promise = std::move(thread_ready)]() mutable
             {
                 // Lock must be defined outside the loop for waiting
                 std::unique_lock<std::mutex> lock(this->mtx_);
+
+                // Signal that the thread is ready and waiting
+                ready_promise.set_value();
 
                 while (this->running_) // Check if the sink is active
                 {
@@ -51,22 +58,34 @@ namespace bpmfinder::core
                     while (!this->queue_.empty())
                     {
                         // 1. Get the data
+                        // Move the front element from the queue into local variable 'data'
+                        // - `this->queue_.front()` returns a **reference** to the element at the front of the queue
+                        // - `std::move(this->queue_.front())` casts that reference to an **rvalue reference** (`DataType&&`)
+                        // - The assignment `DataType data = ...` invokes the **move constructor** of `DataType`, which transfers ownership of resources from the queue element to the local variable `data`
                         DataType data = std::move(this->queue_.front());
+                        // - After the move, the queue element is in a "valid but unspecified state" (typically empty)
+                        // - - `queue_.pop()` removes the now-moved-from element from the queue
                         this->queue_.pop();
 
                         // MUST release the lock before processing to avoid blocking
                         // the PushData call on the other thread while we process.
                         lock.unlock();
-                        // 2. Process the data (Replace with actual logic)
-                        // For example:
-                        std::cout << "Processing data: " << data << std::endl;
-                        // Simulate work
+
+                        // 2. Process the data by calling the virtual method
+                        // - Even though we already moved `data` from the queue, the local variable itself is an **lvalue** (it has a name and persists in scope).
+                        // When you pass `data` to `Process()`
+                        // - **Without `std::move`**: The parameter `DataType data` in `Process()` would **copy** from the local variable
+                        // - **With `std::move`**: The parameter in `Process()` will  **move** from the local variable, avoiding a copy
+                        Process(std::move(data));
 
                         // 3. Re-acquire the lock to check the queue/wait again
                         lock.lock();
                     }
                 }
             });
+
+            // Wait until the worker thread is ready
+            ready_future.wait();
         }
 
         virtual void Process(DataType data) = 0;
@@ -74,6 +93,7 @@ namespace bpmfinder::core
         void Stop()
         {
             running_ = false;
+            this->cv_.notify_one(); // ← CRITICAL: Wake up the worker thread!
             if (thread_.joinable())
                 thread_.join();
         }

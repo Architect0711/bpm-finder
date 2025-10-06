@@ -30,7 +30,7 @@ namespace bpmfinder::core
             std::lock_guard lock(mtx_);
             for (auto* obs : observers_)
             {
-                obs->PushData(data); // observer handles thread safety
+                obs->PushData(data); // Passes by const reference - observer handles thread safety
             }
         }
     };

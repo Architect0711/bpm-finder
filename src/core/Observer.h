@@ -21,9 +21,10 @@ namespace bpmfinder::core
     public:
         void PushData(const DataType& data)
         {
+            // Lock only for the duration of putting new data into the queue
             {
                 std::unique_lock lock(mtx_);
-                queue_.push(data);
+                queue_.push(data); // ⚠️ COPIES data into the queue!
             } // Release lock before notifying
             cv_.notify_one();
         }

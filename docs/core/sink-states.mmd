@@ -1,0 +1,23 @@
+stateDiagram-v2
+    [*] --> Created: Start() called
+    Created --> Signaling: Worker thread starts
+    Signaling --> Waiting: Promise set_value()<br/>Main thread unblocked
+
+    Waiting --> Processing: Data available in queue<br/>(CV notified)
+    Processing --> Waiting: Queue empty<br/>(enter cv_.wait)
+    Processing --> Processing: More data in queue
+
+    Waiting --> Stopping: running_ = false<br/>(CV notified by Stop())
+    Processing --> Stopping: running_ = false
+
+    Stopping --> [*]: Thread exits<br/>join() completes
+
+    note right of Waiting
+        Mutex is released atomically
+        while waiting on CV
+    end note
+
+    note right of Processing
+        Mutex is explicitly unlocked
+        during Process() call
+    end note
