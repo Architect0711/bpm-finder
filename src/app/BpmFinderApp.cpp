@@ -4,11 +4,10 @@
 
 #include "BpmFinderApp.h"
 #include <chrono>
-#include <iostream>
 #include <thread>
 
 #include "audio/AudioBinFileSink.h"
-#include "audio/WasapiAudioSource.h"
+#include "dsp/time_domain_onset_detection/TimeDomainOnsetDetectionDspPipeline.h"
 
 namespace bpmfinder::app
 {
@@ -25,21 +24,10 @@ namespace bpmfinder::app
         auto bandPassLowCutoff = 100;
         auto bandPassHighCutoff = 10000;
 
-        audio::WasapiAudioSource source(chunkSize);
-        if (!source.Initialize())
-        {
-            std::cerr << "Failed to init WASAPI source" << std::endl;
-            return;
-        }
+        dsp::time_domain_onset_detection::TimeDomainOnsetDetectionDspPipeline
+            dspPipeline(chunkSize, sampleRate, bandPassLowCutoff, bandPassHighCutoff);
 
-        audio::AudioBinFileSink sink("waveform.bin");
-
-        source.Subscribe(&sink);
-
-        // Start the sink's worker thread BEFORE starting the audio source
-        sink.Start();
-
-        source.Start();
+        dspPipeline.Start();
 
         running_ = true;
         while (running_)
@@ -47,7 +35,7 @@ namespace bpmfinder::app
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
 
-        source.Stop();
+        dspPipeline.Stop();
     }
 
     void BpmFinderApp::Stop()

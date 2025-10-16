@@ -15,10 +15,11 @@ namespace bpmfinder::dsp::filters
         f2_cutoff_high_(cutoff_high),
         fs_sample_rate_(sample_rate),
         g_gain_(gain),
-        x1_(1.0f),
-        x2_(1.0f),
-        y1_(1.0f),
-        y2_(1.0f)
+        // The state history is initialized with zeros, representing "silence before the audio started"
+        x1_(0.0f),
+        x2_(0.0f),
+        y1_(0.0f),
+        y2_(0.0f)
     {
         CalculateCoefficients();
     }
@@ -26,21 +27,21 @@ namespace bpmfinder::dsp::filters
     void BandPassFilter::CalculateCoefficients()
     {
         // --- Step 2: Calculate Derived Parameters ---
-        float fc = std::sqrt(f1_cutoff_low_ * f2_cutoff_high_);
-        float B = f2_cutoff_high_ - f1_cutoff_low_;
-        float Q = fc / B;
+        const float fc = std::sqrt(f1_cutoff_low_ * f2_cutoff_high_);
+        const float B = f2_cutoff_high_ - f1_cutoff_low_;
+        const float Q = fc / B;
 
         // --- Step 3: Calculate Digital Intermediate Variables ---
-        float omega0 = 2.0f * M_PI * fc / fs_sample_rate_; // M_PI is math constant
-        float alpha = std::sin(omega0) / (2.0f * Q);
+        const float omega0 = 2.0f * M_PI * fc / fs_sample_rate_; // M_PI is math constant
+        const float alpha = std::sin(omega0) / (2.0f * Q);
 
         // --- Step 4: Calculate Raw Coefficients ---
-        float b0_raw = alpha * g_gain_; // Apply gain (though typically applied after normalization)
-        float b1_raw = 0.0f;
-        float b2_raw = -alpha * g_gain_; // Apply gain
-        float a0_raw = 1.0f + alpha;
-        float a1_raw = -2.0f * std::cos(omega0);
-        float a2_raw = 1.0f - alpha;
+        const float b0_raw = alpha * g_gain_; // Apply gain (though typically applied after normalization)
+        constexpr float b1_raw = 0.0f;
+        const float b2_raw = -alpha * g_gain_; // Apply gain
+        const float a0_raw = 1.0f + alpha;
+        const float a1_raw = -2.0f * std::cos(omega0);
+        const float a2_raw = 1.0f - alpha;
 
         // --- Step 5: Calculate Final Normalized Coefficients ---
         // The filter equation uses: y[n] = b0*x[n] + ... - a1*y[n-1] - ...
@@ -55,17 +56,17 @@ namespace bpmfinder::dsp::filters
         a2_ = a2_raw / a0_raw;
     }
 
-    void BandPassFilter::Process(float sample)
+    float BandPassFilter::Process(float sample)
     {
         // The Difference Equation:
         // y[n] = b0*x[n] + b1*x[n-1] + b2*x[n-2] - a1*y[n-1] - a2*y[n-2]
         float output = b0_ * sample + b1_ * x1_ + b2_ * x2_ - a1_ * y1_ - a2_ * y2_;
 
         // Update the state history for the next sample
-        x2 = x1;
-        x1 = input;
-        y2 = y1;
-        y1 = output;
+        x2_ = x1_;
+        x1_ = sample;
+        y2_ = y1_;
+        y1_ = output;
 
         return output;
     }

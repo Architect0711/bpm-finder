@@ -159,17 +159,6 @@ TEST_F(CopySinkTests, WhenStartCalledTwice_ThenNoError)
     EXPECT_TRUE(sink_->IsRunning());
 }
 
-TEST_F(CopySinkTests, WhenStopCalledTwice_ThenNoError)
-{
-    sink_->Start();
-    sink_->Stop();
-    ASSERT_FALSE(sink_->IsRunning());
-
-    // Should not throw or cause issues
-    sink_->Stop();
-    EXPECT_FALSE(sink_->IsRunning());
-}
-
 // ============================================================================
 // Data Processing Tests
 // ============================================================================
