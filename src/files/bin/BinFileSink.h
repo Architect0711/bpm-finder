@@ -2,23 +2,27 @@
 // Created by Robert on 2025-10-17.
 //
 
-#pragma once
-#include "IAudioSource.h"
-#include "core/CopySink.h"
+#include <atomic>
+#include <iosfwd>
 #include <fstream>
+#include <stdexcept>
+#include <string>
 
-namespace bpmfinder::audio
+#include "core/CopySink.h"
+
+namespace bpmfinder::files::bin
 {
-    class EnergyBinFileSink : public core::CopySink<float>
+    template <typename T>
+    class BinFileSink : public core::CopySink<T>
     {
-    private:
+    protected:
         std::string filename_;
         std::ofstream file_; // RAII: The file handle is managed here!
         std::atomic<size_t> write_count_{0}; // Total items written to the file
 
     public:
         // 1. Constructor: Acquire Resource (Open File)
-        explicit EnergyBinFileSink(const std::string& filename)
+        explicit BinFileSink(const std::string& filename) : filename_(filename)
         {
             // Opening the file here is the "Initialization"
             file_.open(filename, std::ios::binary | std::ios::trunc);
@@ -34,14 +38,5 @@ namespace bpmfinder::audio
         // You do NOT need a separate Shutdown method.
 
         [[nodiscard]] size_t GetWrittenCount() const { return write_count_.load(); }
-
-    protected:
-        void Process(float data) override
-        {
-            std::cout << "Writing " << data << " energy value to file " << filename_ << "..." << std::endl;
-            file_.write(reinterpret_cast<const char*>(&data), sizeof(float));
-            ++write_count_;
-            std::cout << "File size: " << file_.tellp() << " after " << GetWrittenCount() << " entries" << std::endl;
-        }
     };
 }

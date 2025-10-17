@@ -3,7 +3,7 @@
 //
 
 #include <gtest/gtest.h>
-#include "../src/audio/AudioBinFileSink.h"
+#include "../../src/files/bin/AudioBinFileSink.h"
 #include <fstream>
 
 using namespace bpmfinder::audio;

@@ -6,9 +6,10 @@
 
 #include "BandPassFilterStage.h"
 #include "EnergyCalculationStage.h"
+#include "OnsetDetectionStage.h"
 #include "audio/WasapiAudioSource.h"
-#include "audio/AudioBinFileSink.h"
-#include "audio/EnergyBinFileSink.h"
+#include "../../files/bin/AudioBinFileSink.h"
+#include "../../files/bin/FloatBinFileSink.h"
 
 namespace bpmfinder::dsp::time_domain_onset_detection
 {
@@ -29,9 +30,11 @@ namespace bpmfinder::dsp::time_domain_onset_detection
         audio::WasapiAudioSource source;
         BandPassFilterStage bandPassFilterStage;
         EnergyCalculationStage energyCalculationStage;
+        OnsetDetectionStage onsetDetectionStage;
 
-        audio::AudioBinFileSink sink;
-        audio::AudioBinFileSink bandPassSink;
-        audio::EnergyBinFileSink energySink;
+        files::bin::AudioBinFileSink sink;
+        files::bin::AudioBinFileSink bandPassSink;
+        files::bin::FloatBinFileSink energySink;
+        files::bin::FloatBinFileSink onsetSink;
     };
 }

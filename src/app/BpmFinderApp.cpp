@@ -6,7 +6,7 @@
 #include <chrono>
 #include <thread>
 
-#include "audio/AudioBinFileSink.h"
+#include "../files/bin/AudioBinFileSink.h"
 #include "dsp/time_domain_onset_detection/TimeDomainOnsetDetectionDspPipeline.h"
 
 namespace bpmfinder::app
@@ -30,9 +30,21 @@ namespace bpmfinder::app
         dspPipeline.Start();
 
         running_ = true;
+        /**
         while (running_)
         {
             std::this_thread::sleep_for(std::chrono::seconds(1));
+        }
+         **/
+
+        // Record for 10 seconds then stop gracefully
+        const int recordingDurationSeconds = 10;
+        std::cout << "Recording for " << recordingDurationSeconds << " seconds..." << std::endl;
+
+        for (int i = 0; i < recordingDurationSeconds && running_; ++i)
+        {
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+            std::cout << "Recording... " << (i + 1) << "/" << recordingDurationSeconds << " seconds" << std::endl;
         }
 
         dspPipeline.Stop();

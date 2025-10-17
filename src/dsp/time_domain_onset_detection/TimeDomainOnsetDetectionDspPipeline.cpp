@@ -4,7 +4,6 @@
 
 #include "TimeDomainOnsetDetectionDspPipeline.h"
 #include <iostream>
-#include "audio/AudioBinFileSink.h"
 #include "audio/WasapiAudioSource.h"
 
 namespace bpmfinder::dsp::time_domain_onset_detection
@@ -21,7 +20,8 @@ namespace bpmfinder::dsp::time_domain_onset_detection
         source(chunkSize),
         sink("waveform.bin"),
         bandPassSink("bandpass.bin"),
-        energySink("energy.bin")
+        energySink("energy.bin"),
+        onsetSink("onset.bin")
     {
         // In the ctor we only assemble the dsp chain, start reading audio data and processing it via Start()
         if (!source.Initialize())
@@ -30,21 +30,25 @@ namespace bpmfinder::dsp::time_domain_onset_detection
             return;
         }
 
-        source.Subscribe(&sink);
-        source.Subscribe(&bandPassFilterStage);
-        bandPassFilterStage.Subscribe(&bandPassSink);
-        bandPassFilterStage.Subscribe(&energyCalculationStage);
-        energyCalculationStage.Subscribe(&energySink);
+        source.Subscribe(&sink); // Write raw input data to file
+        source.Subscribe(&bandPassFilterStage); // Pass raw input data to bandpass filter stage
+        bandPassFilterStage.Subscribe(&bandPassSink); // Write bandpass filtered data to file
+        bandPassFilterStage.Subscribe(&energyCalculationStage); // Pass bandpass filtered data to energy calc stage
+        energyCalculationStage.Subscribe(&energySink); // Write energy data to file
+        energyCalculationStage.Subscribe(&onsetDetectionStage); // Pass energy data to onset detection stage
+        onsetDetectionStage.Subscribe(&onsetSink); // Write onset data to file
     }
 
     void TimeDomainOnsetDetectionDspPipeline::Start()
     {
-        // Start the sink's worker thread BEFORE starting the audio source
+        // Start the pipeline's worker threads BEFORE starting the audio source
         sink.Start();
         bandPassFilterStage.Start();
         bandPassSink.Start();
         energyCalculationStage.Start();
         energySink.Start();
+        onsetDetectionStage.Start();
+        onsetSink.Start();
 
         source.Start();
     }
@@ -59,9 +63,9 @@ namespace bpmfinder::dsp::time_domain_onset_detection
         bandPassFilterStage.StopAndDrain();
         energyCalculationStage.StopAndDrain();
 
-        sink.Stop();
-        bandPassSink.Stop();
-        energySink.Stop();
+        sink.StopAndDrain();
+        bandPassSink.StopAndDrain();
+        energySink.StopAndDrain();
 
         // Print statistics
         std::cout << "\n=== Pipeline Statistics ===" << std::endl;
@@ -72,12 +76,17 @@ namespace bpmfinder::dsp::time_domain_onset_detection
             std::endl;
         std::cout << "EnergyCalculationStage: " << energyCalculationStage.GetProcessedCount() << "/"
             << energyCalculationStage.GetQueuedCount() << std::endl;
-        std::cout << "EnergySink: " << energySink.GetProcessedCount() << "/"
-            << energySink.GetQueuedCount() << std::endl;
+        std::cout << "EnergySink: " << energySink.GetProcessedCount() << "/" << energySink.GetQueuedCount() <<
+            std::endl;
+        std::cout << "OnsetDetectionStage: " << onsetDetectionStage.GetProcessedCount() << "/"
+            << onsetDetectionStage.GetQueuedCount() << std::endl;
+        std::cout << "OnsetSink: " << onsetSink.GetProcessedCount() << "/"
+            << onsetSink.GetQueuedCount() << std::endl;
 
-        std::cout << "Waveform entries written: " << sink.GetWrittenCount() << "";
-        std::cout << "Bandpass entries written: " << bandPassSink.GetWrittenCount() << "";
-        std::cout << "Energy entries written: " << energySink.GetWrittenCount() << "";
+        std::cout << "Waveform entries written: " << sink.GetWrittenCount() << "" << std::endl;
+        std::cout << "Bandpass entries written: " << bandPassSink.GetWrittenCount() << "" << std::endl;
+        std::cout << "Energy entries written: " << energySink.GetWrittenCount() << "" << std::endl;
+        std::cout << "Onset entries written: " << onsetSink.GetWrittenCount() << std::endl;
         std::cout << "===========================\n" << std::endl;
     }
 }
