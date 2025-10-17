@@ -1,5 +1,5 @@
 //
-// Created by Robert on 2025-09-25.
+// Created by Robert on 2025-10-17.
 //
 
 #pragma once
@@ -9,7 +9,7 @@
 
 namespace bpmfinder::audio
 {
-    class AudioBinFileSink : public core::CopySink<AudioChunk>
+    class EnergyBinFileSink : public core::CopySink<float>
     {
     private:
         std::string filename_;
@@ -18,7 +18,7 @@ namespace bpmfinder::audio
 
     public:
         // 1. Constructor: Acquire Resource (Open File)
-        explicit AudioBinFileSink(const std::string& filename) : filename_(filename)
+        explicit EnergyBinFileSink(const std::string& filename)
         {
             // Opening the file here is the "Initialization"
             file_.open(filename, std::ios::binary | std::ios::trunc);
@@ -36,15 +36,12 @@ namespace bpmfinder::audio
         [[nodiscard]] size_t GetWrittenCount() const { return write_count_.load(); }
 
     protected:
-        void Process(AudioChunk data) override
+        void Process(float data) override
         {
-            // Since AudioChunk is std::vector<float>:
-            std::cout << "Writing " << data.size() << " samples to file " << filename_ << "..." << std::endl;
-            file_.write(reinterpret_cast<const char*>(data.data()), data.size() * sizeof(float));
+            std::cout << "Writing " << data << " energy value to file " << filename_ << "..." << std::endl;
+            file_.write(reinterpret_cast<const char*>(&data), sizeof(float));
             ++write_count_;
-            std::cout << "File " << filename_ << " size: " << file_.tellp() << " after " << GetWrittenCount() <<
-                " entries" << std::endl;
+            std::cout << "File size: " << file_.tellp() << " after " << GetWrittenCount() << " entries" << std::endl;
         }
     };
 }
-

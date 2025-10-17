@@ -77,6 +77,7 @@ namespace bpmfinder::core
                         // - **Without `std::move`**: The parameter `DataType data` in `Process()` would **copy** from the local variable
                         // - **With `std::move`**: The parameter in `Process()` will  **move** from the local variable, avoiding a copy
                         Process(std::move(data));
+                        ++this->processed_count_;
 
                         // 3. Re-acquire the lock to check the queue/wait again
                         lock.lock();
@@ -98,7 +99,51 @@ namespace bpmfinder::core
                 thread_.join();
         }
 
+        void StopAndDrain(std::chrono::milliseconds timeout = std::chrono::milliseconds(5000))
+        {
+            auto start = std::chrono::steady_clock::now();
+
+            // Wait for queue to be empty or timeout
+            while (!IsQueueEmpty())
+            {
+                if (std::chrono::steady_clock::now() - start > timeout)
+                {
+                    std::cerr << "Warning: StopAndDrain timeout reached, queue not empty!" << std::endl;
+                    break;
+                }
+                std::this_thread::sleep_for(std::chrono::milliseconds(10));
+            }
+
+            Stop();
+        }
+
+        template <typename PredecessorType>
+        void StopAfterPredecessor(PredecessorType& predecessor,
+                                  std::chrono::milliseconds timeout = std::chrono::milliseconds(5000))
+        {
+            auto start = std::chrono::steady_clock::now();
+
+            // Wait for predecessor to finish processing (queue empty and not running)
+            while (predecessor.IsRunning() || !predecessor.IsQueueEmpty())
+            {
+                if (std::chrono::steady_clock::now() - start > timeout)
+                {
+                    std::cerr << "Warning: StopAfterPredecessor timeout reached!" << std::endl;
+                    break;
+                }
+                std::this_thread::sleep_for(std::chrono::milliseconds(10));
+            }
+
+            Stop();
+        }
+
         [[nodiscard]] bool IsRunning() const { return running_; }
+
+        [[nodiscard]] bool IsQueueEmpty()
+        {
+            std::lock_guard lock(this->mtx_);
+            return this->queue_.empty();
+        }
 
     private :
         std::thread thread_;

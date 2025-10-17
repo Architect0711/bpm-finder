@@ -21,6 +21,9 @@ namespace bpmfinder::dsp::time_domain_onset_detection
     protected:
         void Process(audio::AudioChunk data) override
         {
+            std::cout << "[BandPassFilterStage] Processing chunk " << this->GetProcessedCount()
+                << "/" << this->GetQueuedCount() << std::endl;
+
             audio::AudioChunk filteredData;
             filteredData.reserve(data.size());
 

@@ -235,9 +235,10 @@ TEST_F(CopySinkTests, WhenSinkStopped_ThenPendingDataStillProcessed)
 {
     // -------------------- Arrange --------------------
     sink_->Start();
+    size_t elements = 10000;
 
     // Push multiple items
-    for (int i = 0; i < 10; ++i)
+    for (int i = 0; i < elements; ++i)
     {
         sink_->PushData("data_" + std::to_string(i));
     }
@@ -251,10 +252,10 @@ TEST_F(CopySinkTests, WhenSinkStopped_ThenPendingDataStillProcessed)
     // -------------------- Assert ---------------------
     // All data should be processed
     auto processed = sink_->GetProcessedData();
-    EXPECT_EQ(processed.size(), 10);
+    EXPECT_EQ(processed.size(), elements);
 
     // Verify order
-    for (int i = 0; i < 10; ++i)
+    for (int i = 0; i < elements; ++i)
     {
         EXPECT_EQ(processed[i], "data_" + std::to_string(i));
     }

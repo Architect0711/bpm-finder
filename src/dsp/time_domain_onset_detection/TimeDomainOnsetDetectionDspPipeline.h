@@ -5,8 +5,10 @@
 #pragma once
 
 #include "BandPassFilterStage.h"
+#include "EnergyCalculationStage.h"
 #include "audio/WasapiAudioSource.h"
 #include "audio/AudioBinFileSink.h"
+#include "audio/EnergyBinFileSink.h"
 
 namespace bpmfinder::dsp::time_domain_onset_detection
 {
@@ -24,9 +26,12 @@ namespace bpmfinder::dsp::time_domain_onset_detection
         void Stop();
 
     private:
-        BandPassFilterStage bandPassFilterStage;
         audio::WasapiAudioSource source;
+        BandPassFilterStage bandPassFilterStage;
+        EnergyCalculationStage energyCalculationStage;
+
         audio::AudioBinFileSink sink;
         audio::AudioBinFileSink bandPassSink;
+        audio::EnergyBinFileSink energySink;
     };
 }
