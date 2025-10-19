@@ -6,6 +6,7 @@
 #include "../../src/files/bin/AudioBinFileSink.h"
 #include <fstream>
 
+using namespace bpmfinder::files::bin;
 using namespace bpmfinder::audio;
 
 /**

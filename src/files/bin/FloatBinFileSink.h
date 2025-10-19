@@ -12,18 +12,18 @@ namespace bpmfinder::files::bin
     class FloatBinFileSink : public BinFileSink<float>
     {
     public:
-        explicit FloatBinFileSink(const std::string& filename) : BinFileSink(filename)
+        explicit FloatBinFileSink(const std::string& filename) : BinFileSink(
+            filename, logging::LoggerFactory::GetLogger("FloatBinFileSink"))
         {
         }
 
     protected:
         void Process(float data) override
         {
-            // std::cout << "Writing " << data << " energy value to file " << filename_ << "..." << std::endl;
             file_.write(reinterpret_cast<const char*>(&data), sizeof(float));
             ++write_count_;
-            std::cout << "File " << filename_ << " size: " << file_.tellp() << " after " << GetWrittenCount() <<
-                " entries" << std::endl;
+            logger_->debug("File {} size: {} after {} entries", filename_, static_cast<std::streamoff>(file_.tellp())
+                           , GetWrittenCount());
         }
     };
 }

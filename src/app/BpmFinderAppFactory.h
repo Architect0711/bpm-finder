@@ -14,5 +14,8 @@ namespace bpmfinder::app
         static std::unique_ptr<BpmFinderApp> CreateProductionApp();
 
         static std::unique_ptr<BpmFinderApp> CreateTestApp();
+
+    private:
+        static void InitializeLogging(bool isProduction);
     };
 }

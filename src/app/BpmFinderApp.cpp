@@ -11,7 +11,7 @@
 
 namespace bpmfinder::app
 {
-    BpmFinderApp::BpmFinderApp() : running_(false)
+    BpmFinderApp::BpmFinderApp() : running_(false), logger_(logging::LoggerFactory::GetLogger("BpmFinderApp"))
     {
     }
 
@@ -39,12 +39,11 @@ namespace bpmfinder::app
 
         // Record for 10 seconds then stop gracefully
         const int recordingDurationSeconds = 10;
-        std::cout << "Recording for " << recordingDurationSeconds << " seconds..." << std::endl;
-
+        logger_->info("Recording for {} seconds...", recordingDurationSeconds);
         for (int i = 0; i < recordingDurationSeconds && running_; ++i)
         {
             std::this_thread::sleep_for(std::chrono::seconds(1));
-            std::cout << "Recording... " << (i + 1) << "/" << recordingDurationSeconds << " seconds" << std::endl;
+            logger_->info("Recording... {}/{} seconds", i + 1, recordingDurationSeconds);
         }
 
         dspPipeline.Stop();

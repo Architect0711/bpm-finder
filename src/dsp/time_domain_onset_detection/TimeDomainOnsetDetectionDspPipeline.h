@@ -36,5 +36,7 @@ namespace bpmfinder::dsp::time_domain_onset_detection
         files::bin::AudioBinFileSink bandPassSink;
         files::bin::FloatBinFileSink energySink;
         files::bin::FloatBinFileSink onsetSink;
+
+        std::shared_ptr<spdlog::logger> logger_;
     };
 }

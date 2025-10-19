@@ -2,13 +2,15 @@
 // Created by Robert on 2025-10-17.
 //
 
+#pragma once
 #include <atomic>
 #include <iosfwd>
 #include <fstream>
 #include <stdexcept>
 #include <string>
-
 #include "core/CopySink.h"
+#include <spdlog/spdlog.h>
+
 
 namespace bpmfinder::files::bin
 {
@@ -19,10 +21,12 @@ namespace bpmfinder::files::bin
         std::string filename_;
         std::ofstream file_; // RAII: The file handle is managed here!
         std::atomic<size_t> write_count_{0}; // Total items written to the file
+        std::shared_ptr<spdlog::logger> logger_;
 
     public:
         // 1. Constructor: Acquire Resource (Open File)
-        explicit BinFileSink(const std::string& filename) : filename_(filename)
+        explicit BinFileSink(const std::string& filename, std::shared_ptr<spdlog::logger> logger) : filename_(filename),
+            logger_(std::move(logger))
         {
             // Opening the file here is the "Initialization"
             file_.open(filename, std::ios::binary | std::ios::trunc);

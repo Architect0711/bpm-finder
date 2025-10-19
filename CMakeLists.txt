@@ -32,7 +32,7 @@ FetchContent_MakeAvailable(googletest)
 FetchContent_Declare(
         spdlog
         GIT_REPOSITORY https://github.com/gabime/spdlog.git
-        GIT_TAG v1.14.1  # Latest stable version
+        GIT_TAG v1.16.0
         GIT_SHALLOW TRUE
 )
 

@@ -117,7 +117,7 @@ TEST_F(BandPassFilterTests, ImpulseResponseSettles)
     EXPECT_NEAR(response.back(), 0.0f, 0.001f);
 }
 
-TEST(BandPassFilterTest, BlocksDCSignal)
+TEST_F(BandPassFilterTests, BlocksDCSignal)
 {
     BandPassFilter filter(100.0f, 10000.0f, 48000.0f);
 

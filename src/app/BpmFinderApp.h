@@ -4,6 +4,7 @@
 
 #pragma once
 #include <atomic>
+#include "spdlog/logger.h"
 
 namespace bpmfinder::app
 {
@@ -21,5 +22,6 @@ namespace bpmfinder::app
 
     private:
         std::atomic<bool> running_;
+        std::shared_ptr<spdlog::logger> logger_;
     };
 }

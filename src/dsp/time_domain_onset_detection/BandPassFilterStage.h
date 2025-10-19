@@ -6,6 +6,7 @@
 #include "audio/IAudioSource.h"
 #include "core/CopyStage.h"
 #include "dsp/filters/BandPassFilter.h"
+#include "logging/LoggerFactory.h"
 
 namespace bpmfinder::dsp::time_domain_onset_detection
 {
@@ -14,15 +15,17 @@ namespace bpmfinder::dsp::time_domain_onset_detection
     public:
         explicit BandPassFilterStage(const float lowCutoff, const float highCutoff, const float sampleRate)
             :
-            filter_(lowCutoff, highCutoff, sampleRate, 1.0f)
+            filter_(lowCutoff, highCutoff, sampleRate, 1.0f),
+            logger_(logging::LoggerFactory::GetLogger("BandPassFilterStage"))
         {
+            logger_->debug("BandPassFilterStage initialized");
         }
 
     protected:
         void Process(audio::AudioChunk data) override
         {
-            std::cout << "[BandPassFilterStage] Processing chunk " << this->GetProcessedCount()
-                << "/" << this->GetQueuedCount() << std::endl;
+            logger_->debug("[BandPassFilterStage] Processing chunk {}/{}", this->GetProcessedCount(),
+                           this->GetQueuedCount());
 
             audio::AudioChunk filteredData;
             filteredData.reserve(data.size());
@@ -37,5 +40,6 @@ namespace bpmfinder::dsp::time_domain_onset_detection
 
     private:
         filters::BandPassFilter filter_;
+        std::shared_ptr<spdlog::logger> logger_;
     };
 }

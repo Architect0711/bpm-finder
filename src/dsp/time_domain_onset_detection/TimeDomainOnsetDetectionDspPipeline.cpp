@@ -21,12 +21,13 @@ namespace bpmfinder::dsp::time_domain_onset_detection
         sink("waveform.bin"),
         bandPassSink("bandpass.bin"),
         energySink("energy.bin"),
-        onsetSink("onset.bin")
+        onsetSink("onset.bin"),
+        logger_(logging::LoggerFactory::GetLogger("TimeDomainOnsetDetectionDspPipeline"))
     {
         // In the ctor we only assemble the dsp chain, start reading audio data and processing it via Start()
         if (!source.Initialize())
         {
-            std::cerr << "Failed to init WASAPI source" << std::endl;
+            logger_->error("Failed to init WASAPI source");
             return;
         }
 
@@ -68,25 +69,25 @@ namespace bpmfinder::dsp::time_domain_onset_detection
         energySink.StopAndDrain();
 
         // Print statistics
-        std::cout << "\n=== Pipeline Statistics ===" << std::endl;
-        std::cout << "Sink: " << sink.GetProcessedCount() << "/" << sink.GetQueuedCount() << std::endl;
-        std::cout << "BandPassFilterStage: " << bandPassFilterStage.GetProcessedCount() << "/"
-            << bandPassFilterStage.GetQueuedCount() << std::endl;
-        std::cout << "BandPassSink: " << bandPassSink.GetProcessedCount() << "/" << bandPassSink.GetQueuedCount() <<
-            std::endl;
-        std::cout << "EnergyCalculationStage: " << energyCalculationStage.GetProcessedCount() << "/"
-            << energyCalculationStage.GetQueuedCount() << std::endl;
-        std::cout << "EnergySink: " << energySink.GetProcessedCount() << "/" << energySink.GetQueuedCount() <<
-            std::endl;
-        std::cout << "OnsetDetectionStage: " << onsetDetectionStage.GetProcessedCount() << "/"
-            << onsetDetectionStage.GetQueuedCount() << std::endl;
-        std::cout << "OnsetSink: " << onsetSink.GetProcessedCount() << "/"
-            << onsetSink.GetQueuedCount() << std::endl;
-
-        std::cout << "Waveform entries written: " << sink.GetWrittenCount() << "" << std::endl;
-        std::cout << "Bandpass entries written: " << bandPassSink.GetWrittenCount() << "" << std::endl;
-        std::cout << "Energy entries written: " << energySink.GetWrittenCount() << "" << std::endl;
-        std::cout << "Onset entries written: " << onsetSink.GetWrittenCount() << std::endl;
-        std::cout << "===========================\n" << std::endl;
+        logger_->info("\n");
+        logger_->info("=== Pipeline Statistics ===");
+        logger_->info("Sink: {}/{}", sink.GetProcessedCount(), sink.GetQueuedCount());
+        logger_->info("BandPassFilterStage: {}/{}",
+                      bandPassFilterStage.GetProcessedCount(), bandPassFilterStage.GetQueuedCount());
+        logger_->info("BandPassSink: {}/{}",
+                      bandPassSink.GetProcessedCount(), bandPassSink.GetQueuedCount());
+        logger_->info("EnergyCalculationStage: {}/{}",
+                      energyCalculationStage.GetProcessedCount(), energyCalculationStage.GetQueuedCount());
+        logger_->info("EnergySink: {}/{}",
+                      energySink.GetProcessedCount(), energySink.GetQueuedCount());
+        logger_->info("OnsetDetectionStage: {}/{}",
+                      onsetDetectionStage.GetProcessedCount(), onsetDetectionStage.GetQueuedCount());
+        logger_->info("OnsetSink: {}/{}",
+                      onsetSink.GetProcessedCount(), onsetSink.GetQueuedCount());
+        logger_->info("Waveform entries written: {}", sink.GetWrittenCount());
+        logger_->info("Bandpass entries written: {}", bandPassSink.GetWrittenCount());
+        logger_->info("Energy entries written: {}", energySink.GetWrittenCount());
+        logger_->info("Onset entries written: {}", onsetSink.GetWrittenCount());
+        logger_->info("===========================\n");
     }
 }

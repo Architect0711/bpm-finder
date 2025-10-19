@@ -11,15 +11,15 @@ namespace bpmfinder::dsp::time_domain_onset_detection
     class EnergyCalculationStage : public core::CopyStage<audio::AudioChunk, float>
     {
     public:
-        explicit EnergyCalculationStage()
+        explicit EnergyCalculationStage() : logger_(logging::LoggerFactory::GetLogger("EnergyCalculationStage"))
         {
         }
 
     protected:
         void Process(audio::AudioChunk data) override
         {
-            std::cout << "[EnergyCalculationStage] Processing chunk " << this->GetProcessedCount()
-                << "/" << this->GetQueuedCount() << std::endl;
+            logger_->debug("[EnergyCalculationStage] Processing chunk {}/{}", this->GetProcessedCount(),
+                           this->GetQueuedCount());
 
             // Calculate energy: E = sum(s[n]^2) for n=0 to N-1
             float energy = 0.0f;
@@ -30,5 +30,8 @@ namespace bpmfinder::dsp::time_domain_onset_detection
 
             this->Notify(energy);
         }
+
+    private:
+        std::shared_ptr<spdlog::logger> logger_;
     };
 }

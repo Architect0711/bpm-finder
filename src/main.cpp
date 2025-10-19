@@ -8,6 +8,8 @@
 
 #include "app/BpmFinderApp.h"
 #include "app/BpmFinderAppFactory.h"
+#include "logging/LoggerFactory.h"
+
 
 using namespace bpmfinder::app;
 
@@ -33,5 +35,9 @@ int main()
     g_app->Run(); // blocks until stopped
 
     std::cout << "Application stopped gracefully." << std::endl;
+
+    // Shutdown logging system
+    bpmfinder::logging::LoggerFactory::Shutdown();
+
     return 0;
 }

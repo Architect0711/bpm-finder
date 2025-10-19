@@ -12,15 +12,16 @@ namespace bpmfinder::dsp::time_domain_onset_detection
     class OnsetDetectionStage : public core::CopyStage<float, float>
     {
     public:
-        OnsetDetectionStage() : previousEnergy_(0.0f)
+        OnsetDetectionStage() : previousEnergy_(0.0f),
+                                logger_(logging::LoggerFactory::GetLogger("OnsetDetectionStage"))
         {
         }
 
     protected:
         void Process(float currentEnergy) override
         {
-            std::cout << "[OnsetDetectionStage] Processing energy " << this->GetProcessedCount()
-                << "/" << this->GetQueuedCount() << std::endl;
+            logger_->debug("[OnsetDetectionStage] Processing chunk {}/{}", this->GetProcessedCount(),
+                           this->GetQueuedCount());
 
             // Calculate onset strength signal (OSS)
             // OSS[k] = max(0, E_current - E_previous)
@@ -34,5 +35,6 @@ namespace bpmfinder::dsp::time_domain_onset_detection
 
     private:
         float previousEnergy_;
+        std::shared_ptr<spdlog::logger> logger_;
     };
 }
