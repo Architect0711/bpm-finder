@@ -112,3 +112,102 @@ where:
 - $OSS[k]$ is the onset strength signal at sample k
 - $Ecurrent$ is the current energy
 - $Eprevious$ is the previous energy
+
+### 4. BPM Calculation
+
+The final step is to calculate the BPM (beats per minute) from the OSS signal.
+
+**Input:** Onset Signal (1 float value)
+
+**Output:** Bpm Value (1 float value)
+
+#### Algorithm
+
+This algorithm involves several processing steps of the OSS signals from the previous stage:
+
+##### 1. Collect Onset Signals
+
+Buffer the OSS signals emitted by the previous stage over a sliding window.
+
+$B[k] = \{ s[k-N+1], \dots, s[k] \}$
+
+where:
+
+- $B[k]$ is the buffer at sample k
+- $N$ is the size of the buffer
+- $s[k]$ is the OSS signal at sample k
+
+##### 2. Find Peaks
+
+Find local maxima in the collected OSS signals.
+This algorithm finds all points in a signal where:
+
+* The value is higher than both the previous and next sample, *and*
+* It’s greater than a threshold that depends on the signal’s overall maximum.
+
+Threshold:  
+$T[k] = \alpha \cdot \max_{s \in B[k]} s$
+
+Peak condition:
+$x[n]$ is a peak if  
+$x[n] > T$,  
+$x[n] > x[n-1]$, and  
+$x[n] > x[n+1]$
+
+Detected peaks:
+$\mathcal{P} = \{ n : x[n] \text{ satisfies above conditions} \}$
+
+##### 3. Interval Calculation
+
+This step converts discrete peak positions into temporal spacing, which is exactly the information needed to estimate
+the beat period.
+
+Let $\mathcal{P} = \{ p_0, p_1, \dots, p_{M-1} \}$ be the detected peaks.
+
+Intervals between peaks:  
+$I[m] = p_m - p_{m-1}, \quad m = 1, \dots, M-1$
+
+Optionally in seconds:  
+$I_{\text{sec}}[m] = \frac{p_m - p_{m-1}}{f_s}$
+
+##### 4. Calculate Dominant Interval
+
+The dominant interval represents the typical spacing between beats in the signal.
+
+Using the median makes it robust to outliers:
+
+* If a peak is missed (interval too large)
+* Or a spurious peak is detected (interval too small)
+
+…the median still gives a good estimate of the typical beat spacing.
+
+Let $I = \{ I[1], I[2], \dots, I[M-1] \}$ be the intervals between consecutive peaks.
+
+Dominant interval:
+$D = \text{median}(I) = \text{median} \big( I[1], I[2], \dots, I[M-1] \big)$
+
+##### 5. Calculate BPM
+
+Calculate the BPM from the peaks.
+
+For this last step, we convert the dominant interval to seconds.
+
+The dominant interval is expressed in buffer indices right now, where each index represents a chunk of audio of size
+the selected chunk size. Calculating chunks per second = sample rate / chunk size converts this interval into seconds.
+
+Then we can compute the BPM by inverting the interval in seconds and multiplying it by 60.
+
+Finally, we clamp the value to a reasonable range. Musically, BPM outside 30–240 is usually nonsense for typical
+electronic music. Clamping prevents errors due to misdetected peaks or extremely fast/slow artifacts.
+
+Let $D$ be the dominant interval in onsetBuffer indices (samples/chunks).
+
+Convert to seconds:  
+$C_\text{per\_sec} = \frac{f_s}{N_c}$  
+$D_\text{sec} = \frac{D}{C_\text{per\_sec}} = D \cdot \frac{N_c}{f_s}$
+
+Convert to BPM:  
+$\text{BPM} = \frac{60}{D_\text{sec}}$
+
+Clamp to reasonable range:  
+$\text{BPM}_\text{clamped} = \text{clip}(\text{BPM}, 30, 240)$  

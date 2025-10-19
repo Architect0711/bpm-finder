@@ -38,7 +38,7 @@ namespace bpmfinder::app
          **/
 
         // Record for 10 seconds then stop gracefully
-        const int recordingDurationSeconds = 10;
+        const int recordingDurationSeconds = 30;
         logger_->info("Recording for {} seconds...", recordingDurationSeconds);
         for (int i = 0; i < recordingDurationSeconds && running_; ++i)
         {

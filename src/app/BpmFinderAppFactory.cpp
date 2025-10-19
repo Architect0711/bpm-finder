@@ -33,7 +33,7 @@ namespace bpmfinder::app
     {
         if (isProduction)
         {
-            logging::LoggerFactory::Initialize(spdlog::level::debug);
+            logging::LoggerFactory::Initialize(spdlog::level::info);
         }
         else
         {

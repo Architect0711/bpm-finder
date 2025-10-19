@@ -22,6 +22,7 @@ namespace bpmfinder::dsp::time_domain_onset_detection
         bandPassSink("bandpass.bin"),
         energySink("energy.bin"),
         onsetSink("onset.bin"),
+        bpmCalculationStage(sampleRate, chunkSize),
         logger_(logging::LoggerFactory::GetLogger("TimeDomainOnsetDetectionDspPipeline"))
     {
         // In the ctor we only assemble the dsp chain, start reading audio data and processing it via Start()
@@ -38,6 +39,7 @@ namespace bpmfinder::dsp::time_domain_onset_detection
         energyCalculationStage.Subscribe(&energySink); // Write energy data to file
         energyCalculationStage.Subscribe(&onsetDetectionStage); // Pass energy data to onset detection stage
         onsetDetectionStage.Subscribe(&onsetSink); // Write onset data to file
+        onsetDetectionStage.Subscribe(&bpmCalculationStage); // Pass onset data to bpm calc stage
     }
 
     void TimeDomainOnsetDetectionDspPipeline::Start()
@@ -50,6 +52,7 @@ namespace bpmfinder::dsp::time_domain_onset_detection
         energySink.Start();
         onsetDetectionStage.Start();
         onsetSink.Start();
+        bpmCalculationStage.Start();
 
         source.Start();
     }
@@ -63,10 +66,13 @@ namespace bpmfinder::dsp::time_domain_onset_detection
         // Stop sinks last to ensure all processed data is written
         bandPassFilterStage.StopAndDrain();
         energyCalculationStage.StopAndDrain();
+        onsetDetectionStage.StopAndDrain();
+        bpmCalculationStage.StopAndDrain();
 
         sink.StopAndDrain();
         bandPassSink.StopAndDrain();
         energySink.StopAndDrain();
+        onsetSink.StopAndDrain();
 
         // Print statistics
         logger_->info("\n");
@@ -84,6 +90,8 @@ namespace bpmfinder::dsp::time_domain_onset_detection
                       onsetDetectionStage.GetProcessedCount(), onsetDetectionStage.GetQueuedCount());
         logger_->info("OnsetSink: {}/{}",
                       onsetSink.GetProcessedCount(), onsetSink.GetQueuedCount());
+        logger_->info("BpmCalculationStage: {}/{}", bpmCalculationStage.GetProcessedCount(),
+                      bpmCalculationStage.GetQueuedCount());
         logger_->info("Waveform entries written: {}", sink.GetWrittenCount());
         logger_->info("Bandpass entries written: {}", bandPassSink.GetWrittenCount());
         logger_->info("Energy entries written: {}", energySink.GetWrittenCount());
