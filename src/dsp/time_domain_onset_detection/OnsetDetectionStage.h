@@ -9,7 +9,7 @@
 
 namespace bpmfinder::dsp::time_domain_onset_detection
 {
-    class OnsetDetectionStage : public core::CopyStage<float, float>
+    class OnsetDetectionStage : public core::CopyStage<TimeDomainOnsetDetectionResult, TimeDomainOnsetDetectionResult>
     {
     public:
         OnsetDetectionStage() : previousEnergy_(0.0f),
@@ -18,19 +18,21 @@ namespace bpmfinder::dsp::time_domain_onset_detection
         }
 
     protected:
-        void Process(float currentEnergy) override
+        void Process(TimeDomainOnsetDetectionResult data) override
         {
-            logger_->debug("[OnsetDetectionStage] Processing chunk {}/{}", this->GetProcessedCount(),
-                           this->GetQueuedCount());
+            logger_->debug("[OnsetDetectionStage] Processing chunk {}/{} with index {}", this->GetProcessedCount(),
+                           this->GetQueuedCount(), data.chunkIndex);
 
             // Calculate onset strength signal (OSS)
             // OSS[k] = max(0, E_current - E_previous)
-            const float oss = std::max(0.0f, currentEnergy - previousEnergy_);
+            const float oss = std::max(0.0f, data.energy - previousEnergy_);
             // Update previous energy for next iteration
-            previousEnergy_ = currentEnergy;
+            previousEnergy_ = data.energy;
+            // Store oss signal in result object
+            data.onsetStrength = oss;
 
             // Notify observers with the onset strength value
-            this->Notify(oss);
+            this->Notify(data);
         }
 
     private:

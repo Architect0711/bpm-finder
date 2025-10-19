@@ -24,6 +24,19 @@ namespace bpmfinder::dsp::filters
         CalculateCoefficients();
     }
 
+    void BandPassFilter::UpdateParameters(int cutoff_low, int cutoff_high, int sample_rate)
+    {
+        if (cutoff_low == f1_cutoff_low_ && cutoff_high == f2_cutoff_high_ && sample_rate == fs_sample_rate_)
+        {
+            return;
+        }
+
+        f1_cutoff_low_ = cutoff_low;
+        f2_cutoff_high_ = cutoff_high;
+        fs_sample_rate_ = sample_rate;
+        CalculateCoefficients();
+    }
+
     void BandPassFilter::CalculateCoefficients()
     {
         // --- Step 2: Calculate Derived Parameters ---

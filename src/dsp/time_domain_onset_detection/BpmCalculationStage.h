@@ -10,26 +10,31 @@
 
 namespace bpmfinder::dsp::time_domain_onset_detection
 {
-    class BpmCalculationStage : public core::CopyStage<float, float>
+    class BpmCalculationStage : public core::CopyStage<TimeDomainOnsetDetectionResult, TimeDomainOnsetDetectionResult>
     {
     public:
-        explicit BpmCalculationStage(const int sampleRate, const int chunkSize)
-            : sampleRate_(sampleRate),
-              chunkSize_(chunkSize),
-              logger_(logging::LoggerFactory::GetLogger("BpmCalculationStage"))
+        explicit BpmCalculationStage()
+            : logger_(logging::LoggerFactory::GetLogger("BpmCalculationStage"))
         {
-            logger_->info("BpmCalculationStage initialized - Sample Rate: {}s, Chunk Size: {}", sampleRate_,
-                          chunkSize_);
+            logger_->info("BpmCalculationStage initialized");
         }
 
     protected:
-        void Process(const float dominantIntervalInSamples) override
+        void Process(TimeDomainOnsetDetectionResult data) override
         {
             // 4. Convert interval from "onset buffer indices" to seconds: each index in onsetBuffer represents one chunk
-            const float chunksPerSecond = static_cast<float>(sampleRate_) / static_cast<float>(chunkSize_);
+            const float chunksPerSecond = static_cast<float>(data.sampleRate) / static_cast<float>(data.chunkSize);
+
+            if (!data.dominantInterval.has_value())
+            {
+                data.bpm = currentBpm_;
+                this->Notify(data);
+                return;
+            }
 
             // 5. Convert to BPM: BPM = 60 / period_in_seconds
-            if (const float intervalInSeconds = dominantIntervalInSamples / chunksPerSecond; intervalInSeconds > 0.0f)
+            if (const float intervalInSeconds = data.dominantInterval.value() / chunksPerSecond; intervalInSeconds >
+                0.0f)
             {
                 float bpm = 60.0f / intervalInSeconds;
 
@@ -39,19 +44,15 @@ namespace bpmfinder::dsp::time_domain_onset_detection
                 }
 
                 currentBpm_ = bpm;
+                data.bpm = bpm;
 
                 logger_->warn("BPM: {:.1f}", bpm);
 
-                ++calculationCount_;
-
-                this->Notify(bpm);
+                this->Notify(data);
             }
         }
 
     private:
-        int sampleRate_;
-        int chunkSize_;
-        size_t calculationCount_ = 0;
         float currentBpm_ = 0.0f;
 
         std::shared_ptr<spdlog::logger> logger_;

@@ -10,7 +10,8 @@
 
 namespace bpmfinder::dsp::time_domain_onset_detection
 {
-    class InterOnsetIntervalCalculationStage : public core::CopyStage<std::vector<size_t>, std::vector<float>>
+    class InterOnsetIntervalCalculationStage : public core::CopyStage<
+            TimeDomainOnsetDetectionResult, TimeDomainOnsetDetectionResult>
     {
     public:
         explicit InterOnsetIntervalCalculationStage()
@@ -20,25 +21,23 @@ namespace bpmfinder::dsp::time_domain_onset_detection
         }
 
     protected:
-        void Process(const std::vector<size_t> peakIndices) override
+        void Process(TimeDomainOnsetDetectionResult data) override
         {
             // Need at least 2 peaks to calculate intervals
-            if (peakIndices.size() < 2)
+            if (data.peakIndices.has_value() && data.peakIndices.value().size() > 2)
             {
-                return; // Don't notify downstream if we can't calculate intervals
+                // Calculate inter-onset intervals (IOI) in samples
+                std::vector<float> intervals;
+                intervals.reserve(data.peakIndices.value().size() - 1);
+
+                for (size_t i = 1; i < data.peakIndices.value().size(); ++i)
+                {
+                    float interval = static_cast<float>(data.peakIndices.value()[i] - data.peakIndices.value()[i - 1]);
+                    intervals.push_back(interval);
+                }
             }
 
-            // Calculate inter-onset intervals (IOI) in samples
-            std::vector<float> intervals;
-            intervals.reserve(peakIndices.size() - 1);
-
-            for (size_t i = 1; i < peakIndices.size(); ++i)
-            {
-                float interval = static_cast<float>(peakIndices[i] - peakIndices[i - 1]);
-                intervals.push_back(interval);
-            }
-
-            this->Notify(intervals);
+            this->Notify(data);
         }
 
     private:

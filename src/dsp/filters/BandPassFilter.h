@@ -15,6 +15,8 @@ namespace bpmfinder::dsp::filters
 
         float Process(float sample);
 
+        void UpdateParameters(int cutoff_low, int cutoff_high, int sample_rate);
+
     private:
         void CalculateCoefficients();
 

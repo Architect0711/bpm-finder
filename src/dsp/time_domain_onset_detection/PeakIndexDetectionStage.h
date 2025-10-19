@@ -10,34 +10,32 @@
 
 namespace bpmfinder::dsp::time_domain_onset_detection
 {
-    class PeakIndexDetectionStage : public core::CopyStage<float, std::vector<size_t>>
+    class PeakIndexDetectionStage : public core::CopyStage<
+            TimeDomainOnsetDetectionResult, TimeDomainOnsetDetectionResult>
     {
     public:
-        explicit PeakIndexDetectionStage(const int sampleRate, const int chunkSize,
-                                         int slidingWindowSizeSeconds = 15,
+        explicit PeakIndexDetectionStage(int slidingWindowSizeSeconds = 15,
                                          float peakThreshold = 0.6f)
-            : sampleRate_(sampleRate),
-              chunkSize_(chunkSize),
-              slidingWindowSizeSeconds_(slidingWindowSizeSeconds),
+            : slidingWindowSizeSeconds_(slidingWindowSizeSeconds),
               peakThreshold_(peakThreshold),
               logger_(logging::LoggerFactory::GetLogger("PeakIndexDetectionStage"))
         {
-            // Calculate how many onset values we need to buffer
-            // Each chunk produces one onset value
-            // Chunks per second = sampleRate / chunkSize
-            const float chunksPerSecond = static_cast<float>(sampleRate) / static_cast<float>(chunkSize);
-            maxBufferSize_ = static_cast<size_t>(chunksPerSecond * slidingWindowSizeSeconds);
-
             logger_->info(
                 "PeakIndexDetectionStage initialized - Sliding Window: {}s, Buffer size: {}, Peak threshold: {}",
                 slidingWindowSizeSeconds, maxBufferSize_, peakThreshold);
         }
 
     protected:
-        void Process(const float onsetStrength) override
+        void Process(TimeDomainOnsetDetectionResult data) override
         {
+            // Calculate how many onset values we need to buffer
+            // Each chunk produces one onset value
+            // Chunks per second = sampleRate / chunkSize
+            const float chunksPerSecond = static_cast<float>(data.sampleRate) / static_cast<float>(data.chunkSize);
+            maxBufferSize_ = static_cast<size_t>(chunksPerSecond * slidingWindowSizeSeconds_);
+
             // Add onset strength to buffer
-            onsetBuffer_.push_back(onsetStrength);
+            onsetBuffer_.push_back(data.onsetStrength);
 
             // Keep buffer size limited to our window
             if (onsetBuffer_.size() > maxBufferSize_)
@@ -65,38 +63,17 @@ namespace bpmfinder::dsp::time_domain_onset_detection
                     }
                 }
 
-                if (peaks.size() >= 2) // Only notify if we have at least 2 peaks
+                // Further processing only makes sense for 2 or more peaks
+                if (peaks.size() >= 2)
                 {
-                    this->Notify(peaks);
-                }
-            }
-        }
-
-        std::vector<size_t> FindPeaks()
-        {
-            std::vector<size_t> peaks;
-
-            // Calculate dynamic threshold based on buffer statistics
-            const float maxValue = *std::max_element(onsetBuffer_.begin(), onsetBuffer_.end());
-            const float threshold = maxValue * peakThreshold_;
-
-            // Simple peak detection: local maximum that exceeds threshold
-            for (size_t i = 1; i < onsetBuffer_.size() - 1; ++i)
-            {
-                if (onsetBuffer_[i] > threshold &&
-                    onsetBuffer_[i] > onsetBuffer_[i - 1] &&
-                    onsetBuffer_[i] > onsetBuffer_[i + 1])
-                {
-                    peaks.push_back(i);
+                    data.peakIndices = peaks;
                 }
             }
 
-            return peaks;
+            this->Notify(data);
         }
 
     private:
-        int sampleRate_;
-        int chunkSize_;
         int slidingWindowSizeSeconds_;
         float peakThreshold_;
         size_t maxBufferSize_;

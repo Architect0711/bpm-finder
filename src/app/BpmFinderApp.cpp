@@ -23,9 +23,10 @@ namespace bpmfinder::app
         auto sampleRate = 48000;
         auto bandPassLowCutoff = 30;
         auto bandPassHighCutoff = 500;
+        auto bandPassGain = 1.0f;
 
         dsp::time_domain_onset_detection::TimeDomainOnsetDetectionDspPipeline
-            dspPipeline(chunkSize, sampleRate, bandPassLowCutoff, bandPassHighCutoff);
+            dspPipeline(chunkSize, sampleRate, bandPassLowCutoff, bandPassHighCutoff, bandPassGain);
 
         dspPipeline.Start();
 

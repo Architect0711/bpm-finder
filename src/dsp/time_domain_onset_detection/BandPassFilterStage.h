@@ -3,6 +3,7 @@
 //
 
 #pragma once
+#include "TimeDomainOnsetDetectionResult.h"
 #include "audio/IAudioSource.h"
 #include "core/CopyStage.h"
 #include "dsp/filters/BandPassFilter.h"
@@ -10,32 +11,36 @@
 
 namespace bpmfinder::dsp::time_domain_onset_detection
 {
-    class BandPassFilterStage : public core::CopyStage<audio::AudioChunk, audio::AudioChunk>
+    class BandPassFilterStage : public core::CopyStage<TimeDomainOnsetDetectionResult, TimeDomainOnsetDetectionResult>
     {
     public:
-        explicit BandPassFilterStage(const int lowCutoff, const int highCutoff, const int sampleRate)
+        explicit BandPassFilterStage(const int lowCutoff, const int highCutoff, const float gain, const int sampleRate)
             :
-            filter_(lowCutoff, highCutoff, sampleRate, 1.0f),
+            filter_(lowCutoff, highCutoff, sampleRate, gain),
             logger_(logging::LoggerFactory::GetLogger("BandPassFilterStage"))
         {
             logger_->debug("BandPassFilterStage initialized");
         }
 
     protected:
-        void Process(audio::AudioChunk data) override
+        void Process(TimeDomainOnsetDetectionResult data) override
         {
-            logger_->debug("[BandPassFilterStage] Processing chunk {}/{}", this->GetProcessedCount(),
-                           this->GetQueuedCount());
+            logger_->debug("[BandPassFilterStage] Processing chunk {}/{} with index {}", this->GetProcessedCount(),
+                           this->GetQueuedCount(), data.chunkIndex);
+
+            filter_.UpdateParameters(data.bandPassLowCutoff, data.bandPassHighCutoff, data.bandPassGain);
 
             audio::AudioChunk filteredData;
-            filteredData.reserve(data.size());
+            filteredData.reserve(data.chunkSize);
 
-            for (const float sample : data)
+            for (const float sample : data.rawAudio)
             {
                 filteredData.push_back(filter_.Process(sample));
             }
 
-            this->Notify(filteredData);
+            data.bandPassFiltered = filteredData;
+
+            this->Notify(data);
         }
 
     private:

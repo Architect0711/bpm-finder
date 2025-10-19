@@ -10,7 +10,8 @@
 
 namespace bpmfinder::dsp::time_domain_onset_detection
 {
-    class DominantIntervalCalculationStage : public core::CopyStage<std::vector<float>, float>
+    class DominantIntervalCalculationStage : public core::CopyStage<
+            TimeDomainOnsetDetectionResult, TimeDomainOnsetDetectionResult>
     {
     public:
         explicit DominantIntervalCalculationStage()
@@ -20,24 +21,23 @@ namespace bpmfinder::dsp::time_domain_onset_detection
         }
 
     protected:
-        void Process(std::vector<float> interOnsetIntervals) override
+        void Process(TimeDomainOnsetDetectionResult data) override
         {
-            if (interOnsetIntervals.empty())
-                return;
+            if (data.interOnsetIntervals.has_value())
+            {
+                // Method 1: Use median interval (simple and robust to outliers)
+                std::vector<float> sortedIntervals = data.interOnsetIntervals.value();
+                std::sort(sortedIntervals.begin(), sortedIntervals.end());
 
-            // Method 1: Use median interval (simple and robust to outliers)
-            std::vector<float> sortedIntervals = interOnsetIntervals;
-            std::sort(sortedIntervals.begin(), sortedIntervals.end());
+                const size_t medianIdx = sortedIntervals.size() / 2;
+                data.dominantInterval = sortedIntervals[medianIdx];
 
-            const size_t medianIdx = sortedIntervals.size() / 2;
-            float medianInterval = sortedIntervals[medianIdx];
+                // Method 2 (Alternative): Use autocorrelation to find periodicity
+                // This is more sophisticated but also more computationally expensive
+                // For now, we use the simpler median approach
+            }
 
-            // Method 2 (Alternative): Use autocorrelation to find periodicity
-            // This is more sophisticated but also more computationally expensive
-            // For now, we use the simpler median approach
-
-
-            this->Notify(medianInterval);
+            this->Notify(data);
         }
 
     private:
