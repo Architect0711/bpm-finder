@@ -13,7 +13,7 @@ namespace bpmfinder::dsp::time_domain_onset_detection
     class BandPassFilterStage : public core::CopyStage<audio::AudioChunk, audio::AudioChunk>
     {
     public:
-        explicit BandPassFilterStage(const float lowCutoff, const float highCutoff, const float sampleRate)
+        explicit BandPassFilterStage(const int lowCutoff, const int highCutoff, const int sampleRate)
             :
             filter_(lowCutoff, highCutoff, sampleRate, 1.0f),
             logger_(logging::LoggerFactory::GetLogger("BandPassFilterStage"))

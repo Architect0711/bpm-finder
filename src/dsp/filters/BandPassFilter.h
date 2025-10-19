@@ -10,7 +10,7 @@ namespace bpmfinder::dsp::filters
     class BandPassFilter
     {
     public:
-        BandPassFilter(float cutoff_low, float cutoff_high, float sample_rate, float gain = 1.0f);
+        BandPassFilter(int cutoff_low, int cutoff_high, int sample_rate, float gain = 1.0f);
         ~BandPassFilter() = default;
 
         float Process(float sample);
@@ -18,9 +18,9 @@ namespace bpmfinder::dsp::filters
     private:
         void CalculateCoefficients();
 
-        float f1_cutoff_low_;
-        float f2_cutoff_high_;
-        float fs_sample_rate_;
+        int f1_cutoff_low_;
+        int f2_cutoff_high_;
+        int fs_sample_rate_;
         float g_gain_;
         float b0_{};
         float b1_{};

@@ -6,8 +6,11 @@
 
 #include "BandPassFilterStage.h"
 #include "BpmCalculationStage.h"
+#include "DominantIntervalCalculationStage.h"
 #include "EnergyCalculationStage.h"
+#include "InterOnsetIntervalCalculationStage.h"
 #include "OnsetDetectionStage.h"
+#include "PeakIndexDetectionStage.h"
 #include "audio/WasapiAudioSource.h"
 #include "../../files/bin/AudioBinFileSink.h"
 #include "../../files/bin/FloatBinFileSink.h"
@@ -32,6 +35,9 @@ namespace bpmfinder::dsp::time_domain_onset_detection
         BandPassFilterStage bandPassFilterStage;
         EnergyCalculationStage energyCalculationStage;
         OnsetDetectionStage onsetDetectionStage;
+        PeakIndexDetectionStage peakIndexDetectionStage;
+        InterOnsetIntervalCalculationStage interOnsetIntervalCalculationStage;
+        DominantIntervalCalculationStage dominantIntervalCalculationStage;
         BpmCalculationStage bpmCalculationStage;
 
         files::bin::AudioBinFileSink sink;

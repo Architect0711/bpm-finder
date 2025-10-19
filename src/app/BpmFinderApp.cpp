@@ -21,8 +21,8 @@ namespace bpmfinder::app
     {
         auto chunkSize = 1024;
         auto sampleRate = 48000;
-        auto bandPassLowCutoff = 100;
-        auto bandPassHighCutoff = 10000;
+        auto bandPassLowCutoff = 30;
+        auto bandPassHighCutoff = 500;
 
         dsp::time_domain_onset_detection::TimeDomainOnsetDetectionDspPipeline
             dspPipeline(chunkSize, sampleRate, bandPassLowCutoff, bandPassHighCutoff);
@@ -38,7 +38,7 @@ namespace bpmfinder::app
          **/
 
         // Record for 10 seconds then stop gracefully
-        const int recordingDurationSeconds = 30;
+        constexpr int recordingDurationSeconds = 30;
         logger_->info("Recording for {} seconds...", recordingDurationSeconds);
         for (int i = 0; i < recordingDurationSeconds && running_; ++i)
         {

@@ -16,13 +16,14 @@ namespace bpmfinder::dsp::time_domain_onset_detection
         sampleRate(sampleRate),
         bandPassLowCutoff(bandPassLowCutoff),
         bandPassHighCutoff(bandPassHighCutoff),
-        bandPassFilterStage(bandPassLowCutoff, bandPassHighCutoff, sampleRate),
         source(chunkSize),
+        bandPassFilterStage(bandPassLowCutoff, bandPassHighCutoff, sampleRate),
+        peakIndexDetectionStage(sampleRate, chunkSize),
+        bpmCalculationStage(sampleRate, chunkSize),
         sink("waveform.bin"),
         bandPassSink("bandpass.bin"),
         energySink("energy.bin"),
         onsetSink("onset.bin"),
-        bpmCalculationStage(sampleRate, chunkSize),
         logger_(logging::LoggerFactory::GetLogger("TimeDomainOnsetDetectionDspPipeline"))
     {
         // In the ctor we only assemble the dsp chain, start reading audio data and processing it via Start()
@@ -34,12 +35,24 @@ namespace bpmfinder::dsp::time_domain_onset_detection
 
         source.Subscribe(&sink); // Write raw input data to file
         source.Subscribe(&bandPassFilterStage); // Pass raw input data to bandpass filter stage
+
         bandPassFilterStage.Subscribe(&bandPassSink); // Write bandpass filtered data to file
         bandPassFilterStage.Subscribe(&energyCalculationStage); // Pass bandpass filtered data to energy calc stage
+
         energyCalculationStage.Subscribe(&energySink); // Write energy data to file
         energyCalculationStage.Subscribe(&onsetDetectionStage); // Pass energy data to onset detection stage
+
         onsetDetectionStage.Subscribe(&onsetSink); // Write onset data to file
-        onsetDetectionStage.Subscribe(&bpmCalculationStage); // Pass onset data to bpm calc stage
+        onsetDetectionStage.Subscribe(&peakIndexDetectionStage); // Pass onset data to peak index detection stage
+
+        peakIndexDetectionStage.Subscribe(&interOnsetIntervalCalculationStage);
+        // Pass peak index data to inter onset interval calc stage
+
+        interOnsetIntervalCalculationStage.Subscribe(&dominantIntervalCalculationStage);
+        // Pass inter onset interval data to dominant interval calc stage
+
+        dominantIntervalCalculationStage.Subscribe(&bpmCalculationStage);
+        // Pass dominant interval data to bpm calc stage
     }
 
     void TimeDomainOnsetDetectionDspPipeline::Start()
@@ -52,6 +65,9 @@ namespace bpmfinder::dsp::time_domain_onset_detection
         energySink.Start();
         onsetDetectionStage.Start();
         onsetSink.Start();
+        peakIndexDetectionStage.Start();
+        interOnsetIntervalCalculationStage.Start();
+        dominantIntervalCalculationStage.Start();
         bpmCalculationStage.Start();
 
         source.Start();
@@ -67,6 +83,9 @@ namespace bpmfinder::dsp::time_domain_onset_detection
         bandPassFilterStage.StopAndDrain();
         energyCalculationStage.StopAndDrain();
         onsetDetectionStage.StopAndDrain();
+        peakIndexDetectionStage.StopAndDrain();
+        interOnsetIntervalCalculationStage.StopAndDrain();
+        dominantIntervalCalculationStage.StopAndDrain();
         bpmCalculationStage.StopAndDrain();
 
         sink.StopAndDrain();
@@ -90,6 +109,13 @@ namespace bpmfinder::dsp::time_domain_onset_detection
                       onsetDetectionStage.GetProcessedCount(), onsetDetectionStage.GetQueuedCount());
         logger_->info("OnsetSink: {}/{}",
                       onsetSink.GetProcessedCount(), onsetSink.GetQueuedCount());
+        logger_->info("PeakIndexDetectionStage: {}/{}", peakIndexDetectionStage.GetProcessedCount(),
+                      peakIndexDetectionStage.GetQueuedCount());
+        logger_->info("InterOnsetIntervalCalculationStage: {}/{}",
+                      interOnsetIntervalCalculationStage.GetProcessedCount(),
+                      interOnsetIntervalCalculationStage.GetQueuedCount());
+        logger_->info("DominantIntervalCalculationStage: {}/{}", dominantIntervalCalculationStage.GetProcessedCount(),
+                      dominantIntervalCalculationStage.GetQueuedCount());
         logger_->info("BpmCalculationStage: {}/{}", bpmCalculationStage.GetProcessedCount(),
                       bpmCalculationStage.GetQueuedCount());
         logger_->info("Waveform entries written: {}", sink.GetWrittenCount());

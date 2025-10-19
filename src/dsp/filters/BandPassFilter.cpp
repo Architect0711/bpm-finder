@@ -9,7 +9,7 @@
 
 namespace bpmfinder::dsp::filters
 {
-    BandPassFilter::BandPassFilter(const float cutoff_low, const float cutoff_high, const float sample_rate,
+    BandPassFilter::BandPassFilter(const int cutoff_low, const int cutoff_high, const int sample_rate,
                                    const float gain) :
         f1_cutoff_low_(cutoff_low),
         f2_cutoff_high_(cutoff_high),
