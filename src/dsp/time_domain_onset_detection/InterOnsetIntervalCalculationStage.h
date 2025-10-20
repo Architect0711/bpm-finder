@@ -35,6 +35,8 @@ namespace bpmfinder::dsp::time_domain_onset_detection
                     float interval = static_cast<float>(data.peakIndices.value()[i] - data.peakIndices.value()[i - 1]);
                     intervals.push_back(interval);
                 }
+
+                data.interOnsetIntervals = intervals;
             }
 
             this->Notify(data);
