@@ -2,25 +2,25 @@
 // Created by Robert on 2025-09-25.
 //
 
-#include "FileAudioSource.h"
+#include "BinFileAudioSource.h"
 #include <iostream>
 #include <chrono>
 #include <thread>
 
 using namespace bpmfinder::audio;
 
-FileAudioSource::FileAudioSource(const std::string& filename, const size_t chunkSize) :
+BinFileAudioSource::BinFileAudioSource(const std::string& filename, const size_t chunkSize) :
     filename_(filename),
     chunkSize_(chunkSize)
 {
 }
 
-FileAudioSource::~FileAudioSource()
+BinFileAudioSource::~BinFileAudioSource()
 {
-    FileAudioSource::Stop();
+    BinFileAudioSource::Stop();
 }
 
-bool FileAudioSource::Initialize()
+bool BinFileAudioSource::Initialize()
 {
     // A second call to Initialize should just rewind to the start of the file, no need to read in the whole file again
     if (!samples_.empty())
@@ -50,13 +50,13 @@ bool FileAudioSource::Initialize()
     return !samples_.empty();
 }
 
-void FileAudioSource::Start()
+void BinFileAudioSource::Start()
 {
     running_ = true;
-    worker_ = std::thread(&FileAudioSource::CaptureLoop, this);
+    worker_ = std::thread(&BinFileAudioSource::CaptureLoop, this);
 }
 
-void FileAudioSource::CaptureLoop()
+void BinFileAudioSource::CaptureLoop()
 {
     while (running_ && samples_.size() > 0)
     {
@@ -65,7 +65,7 @@ void FileAudioSource::CaptureLoop()
     }
 }
 
-std::vector<float> FileAudioSource::GetNextChunk(size_t n)
+std::vector<float> BinFileAudioSource::GetNextChunk(size_t n)
 {
     const size_t end = std::min(cursor_ + n, samples_.size());
     std::vector<float> chunk(samples_.begin() + cursor_, samples_.begin() + end);
@@ -73,7 +73,7 @@ std::vector<float> FileAudioSource::GetNextChunk(size_t n)
     return chunk;
 }
 
-void FileAudioSource::Stop()
+void BinFileAudioSource::Stop()
 {
     running_ = false;
     if (worker_.joinable())

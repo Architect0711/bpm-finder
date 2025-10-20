@@ -15,7 +15,7 @@ namespace bpmfinder::dsp::time_domain_onset_detection
         explicit PipelineResultInitializationStage(const int sampleRate, const int chunkSize,
                                                    const int bandPassLowCutoff,
                                                    const int bandPassHighCutoff,
-                                                   const int bandPassGain)
+                                                   const float bandPassGain)
             : sampleRate_(sampleRate),
               chunkSize_(chunkSize),
               bandPassLowCutoff_(bandPassLowCutoff),
@@ -44,7 +44,7 @@ namespace bpmfinder::dsp::time_domain_onset_detection
         int chunkSize_;
         int bandPassLowCutoff_;
         int bandPassHighCutoff_;
-        int bandPassGain_;
+        float bandPassGain_;
 
         int chunkIndex_ = 0;
 

@@ -15,7 +15,7 @@ namespace bpmfinder::audio
     class WasapiAudioSource final : public IAudioSource
     {
     public:
-        explicit WasapiAudioSource(size_t chunkSize = 512);
+        explicit WasapiAudioSource(size_t chunkSize);
         ~WasapiAudioSource() override;
 
         bool Initialize() override;

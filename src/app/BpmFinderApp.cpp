@@ -21,8 +21,8 @@ namespace bpmfinder::app
     {
         auto chunkSize = 1024;
         auto sampleRate = 48000;
-        auto bandPassLowCutoff = 30;
-        auto bandPassHighCutoff = 500;
+        auto bandPassLowCutoff = 40;
+        auto bandPassHighCutoff = 800;
         auto bandPassGain = 1.0f;
 
         dsp::time_domain_onset_detection::TimeDomainOnsetDetectionDspPipeline

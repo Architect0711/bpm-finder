@@ -74,6 +74,7 @@ namespace bpmfinder::dsp::time_domain_onset_detection
 
         // Then stop the pipeline stages in REVERSE order to allow them to drain their queues
         // Stop sinks last to ensure all processed data is written
+        initializationStage.StopAndDrain();
         bandPassFilterStage.StopAndDrain();
         energyCalculationStage.StopAndDrain();
         onsetDetectionStage.StopAndDrain();

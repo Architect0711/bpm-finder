@@ -4,7 +4,6 @@
 
 #pragma once
 #include "IAudioSource.h"
-#include "core/CopyObservable.h"
 #include <vector>
 #include <string>
 #include <fstream>
@@ -12,11 +11,11 @@
 
 namespace bpmfinder::audio
 {
-    class FileAudioSource final : public IAudioSource
+    class BinFileAudioSource final : public IAudioSource
     {
     public:
-        explicit FileAudioSource(const std::string& filename, size_t chunkSize = 512);
-        ~FileAudioSource() override;
+        explicit BinFileAudioSource(const std::string& filename, size_t chunkSize = 512);
+        ~BinFileAudioSource() override;
 
         bool Initialize() override;
         void Start() override;
