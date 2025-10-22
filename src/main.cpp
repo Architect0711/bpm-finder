@@ -16,7 +16,7 @@ using namespace bpmfinder::app;
 // Global pointer to app for signal handler
 std::unique_ptr<BpmFinderApp> g_app;
 
-void signalHandler(int signum)
+void signalHandler(const int signum)
 {
     std::cout << "\n=== Interrupt signal (" << signum << ") received ===" << std::endl;
     if (g_app)
@@ -28,8 +28,8 @@ void signalHandler(int signum)
 int main()
 {
     // Register signal handlers for graceful shutdown
-    std::signal(SIGINT, signalHandler); // Ctrl+C
-    std::signal(SIGTERM, signalHandler); // CLion stop button
+    std::signal(SIGINT, signalHandler);
+    std::signal(SIGTERM, signalHandler);
 
     g_app = BpmFinderAppFactory::CreateProductionApp();
     g_app->Run(); // blocks until stopped

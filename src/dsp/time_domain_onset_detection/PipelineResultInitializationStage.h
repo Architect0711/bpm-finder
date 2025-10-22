@@ -2,6 +2,7 @@
 // Created by Robert on 2025-10-19.
 //
 
+#pragma once
 #include "TimeDomainOnsetDetectionResult.h"
 #include "audio/IAudioSource.h"
 #include "core/CopyStage.h"

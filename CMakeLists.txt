@@ -41,10 +41,24 @@ FetchContent_MakeAvailable(spdlog)
 # Link spdlog to the library
 target_link_libraries(bpm-finder-lib PUBLIC spdlog::spdlog)
 
+# ----- Add nlohmann/json as a Dependency -----
+FetchContent_Declare(
+        json
+        GIT_REPOSITORY https://github.com/nlohmann/json.git
+        GIT_TAG v3.11.3
+        GIT_SHALLOW TRUE
+)
+
+FetchContent_MakeAvailable(json)
+
+# Link nlohmann/json to the library
+target_link_libraries(bpm-finder-lib PUBLIC nlohmann_json::nlohmann_json)
+
 # Enable testing for CTest integration
 enable_testing()
 
 add_subdirectory(tests)
+add_subdirectory(tools)
 
 # ----- Add libraries to link against for WASAPI audio capture -----
 target_link_libraries(bpm-finder-lib PUBLIC
