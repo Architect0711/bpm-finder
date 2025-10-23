@@ -50,6 +50,7 @@ while True:
     print(status.strip())
     if "[LOG] exit" in status:
         break
+        
 result = json.loads(proc.stdout.readline())
 
 # Stop

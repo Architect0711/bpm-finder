@@ -12,12 +12,15 @@
 #include <nlohmann/json.hpp>
 
 #include "JsonTools.h"
+#include "PipelineStageFactory.h"
 #include "StageTestObservable.h"
 #include "StageTestObserver.h"
 #include "dsp/time_domain_onset_detection/PipelineResultInitializationStage.h"
 #include "dsp/time_domain_onset_detection/TimeDomainOnsetDetectionResult.h"
 
 using json = nlohmann::json;
+
+using ResultObject = bpmfinder::dsp::time_domain_onset_detection::TimeDomainOnsetDetectionResult;
 
 std::atomic<bool> running = true;
 
@@ -32,44 +35,29 @@ int main(const int argc, char* argv[])
     // Disable output buffering for immediate visibility in pipes
     std::cout.setf(std::ios::unitbuf);
 
-    if (argc < 6)
-    {
-        std::cerr <<
-            "[ERR] Usage: <sampleRate (int)> <chunkSize (int)> <bandPassLowCutoff (int)> <bandPassHighCutoff (int)> <bandPassGain (float)>"
-            << std::endl;
-        return 1;
-    }
-
     // Register signal handlers for graceful shutdown
     std::signal(SIGINT, signalHandler);
     std::signal(SIGTERM, signalHandler);
 
-    int sampleRate = std::atoi(argv[1]);
-    int chunkSize = std::atoi(argv[2]);
-    int bandPassLowCutoff = std::atoi(argv[3]);
-    int bandPassHighCutoff = std::atoi(argv[4]);
-    float bandPassGain = std::atof(argv[5]);
-
-    std::cout << "[LOG] Sample Rate: " << sampleRate << " Chunk Size: " << chunkSize << " Bandpass: " <<
-        bandPassLowCutoff << " - " << bandPassHighCutoff << " Gain: " << bandPassGain << std::endl;
-
     // Create the stage we want to test in isolation
     std::cout << "[LOG] Creating PipelineResultInitializationStage" << std::endl;
-    bpmfinder::dsp::time_domain_onset_detection::PipelineResultInitializationStage stage(
-        sampleRate, chunkSize, bandPassLowCutoff, bandPassHighCutoff, bandPassGain);
+    bpmfinder::tools::dsp::time_domain_onset_detection::PipelineStageFactory factory;
+    auto stage = factory.CreatePipelineStage(argc, argv);
+    if (stage == nullptr)
+    {
+        return 1;
+    }
 
     // Create an observer that will capture the output of the stage
     std::cout << "[LOG] Creating StageTestObserver" << std::endl;
-    auto observer = bpmfinder::tools::dsp::time_domain_onset_detection::StageTestObserver<
-        bpmfinder::dsp::time_domain_onset_detection::TimeDomainOnsetDetectionResult>();
-    stage.Subscribe(&observer);
-    stage.Start();
+    auto observer = bpmfinder::tools::dsp::time_domain_onset_detection::StageTestObserver<ResultObject>();
+    stage->Subscribe(&observer);
+    stage->Start();
 
     // Create an observable that will publish the input of the stage
     std::cout << "[LOG] Creating StageTestObservable" << std::endl;
-    auto source = bpmfinder::tools::dsp::time_domain_onset_detection::StageTestObservable<
-        bpmfinder::audio::AudioChunk>();
-    source.Subscribe(&stage);
+    auto source = bpmfinder::tools::dsp::time_domain_onset_detection::StageTestObservable<ResultObject>();
+    source.Subscribe(stage.get());
 
     std::cout << "[LOG] ready" << std::endl;
 
@@ -85,6 +73,8 @@ int main(const int argc, char* argv[])
             continue;
         }
 
+        std::cout << "[LOG] input: " << line << std::endl;
+
         if (line == "exit")
         {
             running = false;
@@ -95,9 +85,9 @@ int main(const int argc, char* argv[])
         try
         {
             std::cout << "[LOG] Decoding Input Data..." << std::endl;
-            auto audioChunk = bpmfinder::tools::dsp::time_domain_onset_detection::ParseJsonAudioChunk(line);
-            std::cout << "[LOG] Decoded Input Data: " << audioChunk.size() << " Samples" << std::endl;
-            source.Publish(audioChunk);
+            auto resultObj = bpmfinder::tools::dsp::time_domain_onset_detection::ParseJsonResult(line);
+            std::cout << "[LOG] Decoded Input Data: " << std::endl;
+            source.Publish(*resultObj);
             std::cout << "[LOG] Called Stage..." << std::endl;
         }
         catch (const std::exception& e)

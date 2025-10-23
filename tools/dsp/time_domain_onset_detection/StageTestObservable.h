@@ -15,7 +15,7 @@ namespace bpmfinder::tools::dsp::time_domain_onset_detection
     public:
         void Publish(const T& data)
         {
-            std::cout << "Publishing to " << this->GetObserversCount() << " observers" << std::endl;
+            std::cout << "[LOG] Publishing to " << this->GetObserversCount() << " observers" << std::endl;
             this->Notify(data);
         }
     };
