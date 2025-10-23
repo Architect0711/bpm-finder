@@ -4,7 +4,6 @@
 
 #pragma once
 
-#include "audio/IAudioSource.h"
 #include "core/CopyObservable.h"
 
 namespace bpmfinder::tools::dsp::time_domain_onset_detection
@@ -16,6 +15,7 @@ namespace bpmfinder::tools::dsp::time_domain_onset_detection
     public:
         void Publish(const T& data)
         {
+            std::cout << "Publishing to " << this->GetObserversCount() << " observers" << std::endl;
             this->Notify(data);
         }
     };

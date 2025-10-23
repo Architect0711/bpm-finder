@@ -33,5 +33,11 @@ namespace bpmfinder::core
                 obs->PushData(data); // Passes by const reference - observer handles thread safety
             }
         }
+
+        size_t GetObserversCount()
+        {
+            std::lock_guard lock(mtx_);
+            return observers_.size();
+        }
     };
 }

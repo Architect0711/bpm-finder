@@ -23,15 +23,18 @@ namespace bpmfinder::tools::dsp::time_domain_onset_detection
 
             if (!j.contains("rawAudio") || !j["rawAudio"].is_array())
             {
-                throw std::runtime_error("JSON must contain 'rawAudio' array");
+                std::cerr << "[ERR] JSON must contain 'rawAudio' array";
+                return {};
             }
 
             return j["rawAudio"].get<std::vector<float>>();
         }
         catch (const json::parse_error& e)
         {
-            throw std::runtime_error(std::string("JSON parse error: ") + e.what());
+            std::cerr << std::string("JSON parse error: ") + e.what();
         }
+
+        return {};
     }
 
     // Serialize result to JSON

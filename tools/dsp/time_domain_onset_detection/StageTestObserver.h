@@ -4,16 +4,9 @@
 
 #pragma once
 
-#include <iostream>
-#include <string>
-#include <thread>
-#include <atomic>
-#include <csignal>
 #include <vector>
 
 #include "core/CopyObserver.h"
-#include "dsp/time_domain_onset_detection/TimeDomainOnsetDetectionResult.h"
-#include "nlohmann/json_fwd.hpp"
 
 namespace bpmfinder::tools::dsp::time_domain_onset_detection
 {
@@ -24,7 +17,21 @@ namespace bpmfinder::tools::dsp::time_domain_onset_detection
     public:
         std::vector<T> GetData()
         {
-            return this->queue_;
+            std::vector<T> result;
+            // Lock only for the duration of emptying the queue
+            {
+                while (!this->queue_.empty())
+                {
+                    result.push_back(this->queue_.front());
+                    this->queue_.pop();
+                }
+            } // Release lock before returning
+            return result;
+        }
+
+        bool HasResult()
+        {
+            return !this->queue_.empty();
         }
     };
 }
